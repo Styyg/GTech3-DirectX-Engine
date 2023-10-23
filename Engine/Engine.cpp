@@ -8,6 +8,7 @@ Engine::Engine()
     }
 
     SynchroProcess();
+    SetMSAA();
 }
 
 Engine::~Engine()
@@ -36,6 +37,22 @@ void Engine::SynchroProcess()
     UINT mRtvDescriptorSize = mD3DDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
     UINT mDsvDescriptorSize = mD3DDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_DSV);
     UINT mCbvSrvUavDescriptorSize = mD3DDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+}
+
+void Engine::SetMSAA()
+{
+    msQualityLevels.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+    msQualityLevels.SampleCount = 4;
+    msQualityLevels.Flags = D3D12_MULTISAMPLE_QUALITY_LEVELS_FLAG_NONE;
+    msQualityLevels.NumQualityLevels = 0;
+
+    ThrowIfFailed(mD3DDevice->CheckFeatureSupport(D3D12_FEATURE_MULTISAMPLE_QUALITY_LEVELS,&msQualityLevels,sizeof(msQualityLevels)));
+
+    if (msQualityLevels.NumQualityLevels == 0) {
+        MessageBox(0, L"4x MSAA n'est pas supporté sur votre appareil", L"Erreur", MB_OK);
+
+        // ex : 1x MSAA ou pas de MSAA
+    }
 }
 
 void Engine::Update()

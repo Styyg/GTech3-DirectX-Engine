@@ -14,6 +14,7 @@ public:
 
 	bool InitD3D();
 	void SynchroProcess();
+	void SetMSAA();
 
 	void Update();
 
@@ -25,4 +26,6 @@ private:
 	Microsoft::WRL::ComPtr<ID3D12Fence> mFence;
 
 	UINT64 mFenceValue = 0;
+
+	D3D12_FEATURE_DATA_MULTISAMPLE_QUALITY_LEVELS msQualityLevels;
 };
