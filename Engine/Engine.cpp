@@ -2,28 +2,30 @@
 
 Engine::Engine()
 {
-    if (!InitD3D())
-    {
-        MessageBox(nullptr, L"Failed to initialize Direct3D", L"Error", MB_OK);
-    }
-
+    InitD3D();
     SynchroProcess();
     SetMSAA();
+    CreateCommandAllocator();
+    CreateCommandList();
+    CreateCommandQueue();
 }
 
 Engine::~Engine()
 {
-    
+
 }
 
-bool Engine::InitD3D() {
+void Engine::InitD3D() {
     HRESULT hr = D3D12CreateDevice(
         nullptr,                // pAdapter
         D3D_FEATURE_LEVEL_11_0, // Minimum feature level this app can support
         IID_PPV_ARGS(&mD3DDevice)
     );
 
-    return SUCCEEDED(hr);
+    if (FAILED(hr))
+    {
+        MessageBox(nullptr, L"Failed to initialize Direct3D", L"Error", MB_OK);
+    }
 }
 
 void Engine::SynchroProcess()
@@ -52,6 +54,43 @@ void Engine::SetMSAA()
         MessageBox(0, L"4x MSAA n'est pas supporté sur votre appareil", L"Erreur", MB_OK);
 
         // ex : 1x MSAA ou pas de MSAA
+    }
+}
+
+void Engine::CreateCommandAllocator()
+{
+    HRESULT hr = mD3DDevice->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT, IID_PPV_ARGS(&mCommandAllocator));
+    if (FAILED(hr))
+    {
+        ThrowIfFailed(hr);
+    }
+}
+
+void Engine::CreateCommandList()
+{
+    HRESULT hr = mD3DDevice->CreateCommandList(
+        0,
+        D3D12_COMMAND_LIST_TYPE_DIRECT,
+        mCommandAllocator.Get(),
+        nullptr,
+        IID_PPV_ARGS(&mCommandList)
+    );
+    if (FAILED(hr))
+    {
+        ThrowIfFailed(hr);
+    }
+}
+
+void Engine::CreateCommandQueue()
+{
+    D3D12_COMMAND_QUEUE_DESC queueDesc = {};
+    queueDesc.Type = D3D12_COMMAND_LIST_TYPE_DIRECT;
+    queueDesc.Flags = D3D12_COMMAND_QUEUE_FLAG_NONE;
+
+    HRESULT hr = mD3DDevice->CreateCommandQueue(&queueDesc, IID_PPV_ARGS(&mCommandQueue));
+    if (FAILED(hr))
+    {
+        ThrowIfFailed(hr);
     }
 }
 
