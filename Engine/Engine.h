@@ -8,11 +8,11 @@
 
 using namespace Microsoft::WRL;
 
-class D3DApp
+class Engine
 {
 public:
-    D3DApp(HINSTANCE hInstance);
-    virtual ~D3DApp();
+    Engine(HINSTANCE hInstance);
+    virtual ~Engine();
 
     virtual void Initialize();
     int Run();
