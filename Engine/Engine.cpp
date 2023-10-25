@@ -114,6 +114,30 @@ void Engine::SwapChain()
 	ThrowIfFailed(swapChain.As(&mSwapChain));
 }
 
+void Engine::RenderTargetView()
+{
+	ComPtr<ID3D12Resource> backBuffer;
+	ThrowIfFailed(mSwapChain->GetBuffer(0, IID_PPV_ARGS(&backBuffer)));
+
+	D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle = mRtvHeap->GetCPUDescriptorHandleForHeapStart();
+	mD3DDevice->CreateRenderTargetView(backBuffer.Get(), nullptr, rtvHandle);
+
+	ComPtr<ID3D12Resource> mSwapChainBuffer[mSwapChainBufferCount];
+	CD3DX12_CPU_DESCRIPTOR_HANDLE rtvHeapHandle(mRtvHeap->GetCPUDescriptorHandleForHeapStart());
+
+	for (UINT i = 0; i < mSwapChainBufferCount; i++)
+	{
+		// Get the ith buffer in the swap chain.
+		ThrowIfFailed(mSwapChain->GetBuffer(i, IID_PPV_ARGS(&mSwapChainBuffer[i])));
+
+		// Create an RTV to it.
+		mD3DDevice->CreateRenderTargetView(mSwapChainBuffer[i].Get(), nullptr, rtvHeapHandle);
+
+		// Next entry in heap.
+		rtvHeapHandle.Offset(1, mRtvDescriptorSize);
+	}
+}
+
 void Engine::CreateCommandList()
 {
 	HRESULT hr = mD3DDevice->CreateCommandList(
@@ -224,8 +248,8 @@ void Engine::InitD3D()
 	ThrowIfFailed(CreateDXGIFactory1(IID_PPV_ARGS(&mDxgiFactory)));
 
 	HRESULT hr = D3D12CreateDevice(
-		nullptr,                // pAdapter
-		D3D_FEATURE_LEVEL_11_0, // Minimum feature level this app can support
+		nullptr,
+		D3D_FEATURE_LEVEL_11_0,
 		IID_PPV_ARGS(&mD3DDevice)
 	);
 
