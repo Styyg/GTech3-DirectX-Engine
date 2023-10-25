@@ -52,15 +52,10 @@ private:
     ComPtr<ID3D12Device> mD3DDevice;
     ComPtr<IDXGISwapChain> mSwapChain;
     ComPtr<IDXGIFactory4> mDxgiFactory;
-
-    D3D12_FEATURE_DATA_MULTISAMPLE_QUALITY_LEVELS msQualityLevels;
-
     ComPtr<ID3D12DescriptorHeap> mRtvHeap;
     ComPtr<ID3D12DescriptorHeap> mDsvHeap;	
-    
-    UINT mRtvDescriptorSize;
-    UINT mDsvDescriptorSize;
-    UINT mCbvSrvUavDescriptorSize;
+
+    D3D12_FEATURE_DATA_MULTISAMPLE_QUALITY_LEVELS msQualityLevels;
 
     int mClientWidth = 800;
     int mClientHeight = 600;
