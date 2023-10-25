@@ -1,4 +1,4 @@
-#include "D3DApp.h"
+#include "Engine.h"
 #include <sstream>
 
 LRESULT CALLBACK WindowProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
@@ -31,7 +31,7 @@ LRESULT CALLBACK WindowProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 	return DefWindowProc(hWnd, msg, wParam, lParam);
 }
 
-D3DApp::D3DApp(HINSTANCE hInstance)	: mhInst(hInstance)
+Engine::Engine(HINSTANCE hInstance) : mhInst(hInstance)
 {
 	InitMainWindow();
 	InitD3D();
@@ -42,16 +42,16 @@ D3DApp::D3DApp(HINSTANCE hInstance)	: mhInst(hInstance)
 	CreateCommandQueue();
 }
 
-D3DApp::~D3DApp()
+Engine::~Engine()
 {
 
 }
 
-void D3DApp::Initialize()
+void Engine::Initialize()
 {
 }
 
-void D3DApp::SynchroProcess()
+void Engine::SynchroProcess()
 {
 	HRESULT hr = mD3DDevice->CreateFence(0, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&mFence));
 
@@ -62,7 +62,7 @@ void D3DApp::SynchroProcess()
 	UINT mCbvSrvUavDescriptorSize = mD3DDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 }
 
-void D3DApp::SetMSAA()
+void Engine::SetMSAA()
 {
 	msQualityLevels.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
 	msQualityLevels.SampleCount = 4;
@@ -78,14 +78,14 @@ void D3DApp::SetMSAA()
 	}
 }
 
-void D3DApp::CreateCommandAllocator()
+void Engine::CreateCommandAllocator()
 {
 	HRESULT hr = mD3DDevice->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT, IID_PPV_ARGS(&mCommandAllocator));
 
 	ThrowIfFailed(hr);
 }
 
-void D3DApp::CreateCommandList()
+void Engine::CreateCommandList()
 {
 	HRESULT hr = mD3DDevice->CreateCommandList(
 		0,
@@ -94,11 +94,11 @@ void D3DApp::CreateCommandList()
 		nullptr,
 		IID_PPV_ARGS(&mCommandList)
 	);
-	
+
 	ThrowIfFailed(hr);
 }
 
-void D3DApp::CreateCommandQueue()
+void Engine::CreateCommandQueue()
 {
 	D3D12_COMMAND_QUEUE_DESC queueDesc = {};
 	queueDesc.Type = D3D12_COMMAND_LIST_TYPE_DIRECT;
@@ -109,7 +109,7 @@ void D3DApp::CreateCommandQueue()
 	ThrowIfFailed(hr);
 }
 
-bool D3DApp::InitMainWindow()
+bool Engine::InitMainWindow()
 {
 	const auto pClassName = "GameWnd";
 	// register window class
@@ -148,7 +148,7 @@ bool D3DApp::InitMainWindow()
 	return true;
 }
 
-void D3DApp::InitD3D()
+void Engine::InitD3D()
 {
 	HRESULT hr = D3D12CreateDevice(
 		nullptr,                // pAdapter
@@ -162,7 +162,7 @@ void D3DApp::InitD3D()
 	}
 }
 
-int D3DApp::Run()
+int Engine::Run()
 {
 	MSG msg = { 0 };
 
@@ -184,11 +184,11 @@ int D3DApp::Run()
 	return (int)msg.wParam;;
 }
 
-void D3DApp::Update() {
+void Engine::Update() {
 
 }
 
-void D3DApp::ThrowIfFailed(HRESULT hr)
+void Engine::ThrowIfFailed(HRESULT hr)
 {
 	if (FAILED(hr))
 	{
