@@ -10,8 +10,6 @@ int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 #endif
 
 	D3DApp appEngine(hInstance);
-	if (!appEngine.Initialize())
-		return 0;
 
 	return appEngine.Run();
 }

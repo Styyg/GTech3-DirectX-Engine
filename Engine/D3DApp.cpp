@@ -33,7 +33,13 @@ LRESULT CALLBACK WindowProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 
 D3DApp::D3DApp(HINSTANCE hInstance)	: mhInst(hInstance)
 {
-
+	InitMainWindow();
+	InitD3D();
+	SynchroProcess();
+	SetMSAA();
+	CreateCommandAllocator();
+	CreateCommandList();
+	CreateCommandQueue();
 }
 
 D3DApp::~D3DApp()
@@ -41,15 +47,66 @@ D3DApp::~D3DApp()
 
 }
 
-bool D3DApp::Initialize()
+void D3DApp::Initialize()
 {
-	if (!InitMainWindow())
-		return false;
+}
 
-	if (!InitDirect3D())
-		return false;
+void D3DApp::SynchroProcess()
+{
+	HRESULT hr = mD3DDevice->CreateFence(0, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&mFence));
 
-	return true;
+	ThrowIfFailed(hr);
+
+	UINT mRtvDescriptorSize = mD3DDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
+	UINT mDsvDescriptorSize = mD3DDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_DSV);
+	UINT mCbvSrvUavDescriptorSize = mD3DDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+}
+
+void D3DApp::SetMSAA()
+{
+	msQualityLevels.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+	msQualityLevels.SampleCount = 4;
+	msQualityLevels.Flags = D3D12_MULTISAMPLE_QUALITY_LEVELS_FLAG_NONE;
+	msQualityLevels.NumQualityLevels = 0;
+
+	ThrowIfFailed(mD3DDevice->CheckFeatureSupport(D3D12_FEATURE_MULTISAMPLE_QUALITY_LEVELS, &msQualityLevels, sizeof(msQualityLevels)));
+
+	if (msQualityLevels.NumQualityLevels == 0) {
+		MessageBox(0, "4x MSAA n'est pas supporté sur votre appareil", "Erreur", MB_OK);
+
+		// ex : 1x MSAA ou pas de MSAA
+	}
+}
+
+void D3DApp::CreateCommandAllocator()
+{
+	HRESULT hr = mD3DDevice->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT, IID_PPV_ARGS(&mCommandAllocator));
+
+	ThrowIfFailed(hr);
+}
+
+void D3DApp::CreateCommandList()
+{
+	HRESULT hr = mD3DDevice->CreateCommandList(
+		0,
+		D3D12_COMMAND_LIST_TYPE_DIRECT,
+		mCommandAllocator.Get(),
+		nullptr,
+		IID_PPV_ARGS(&mCommandList)
+	);
+	
+	ThrowIfFailed(hr);
+}
+
+void D3DApp::CreateCommandQueue()
+{
+	D3D12_COMMAND_QUEUE_DESC queueDesc = {};
+	queueDesc.Type = D3D12_COMMAND_LIST_TYPE_DIRECT;
+	queueDesc.Flags = D3D12_COMMAND_QUEUE_FLAG_NONE;
+
+	HRESULT hr = mD3DDevice->CreateCommandQueue(&queueDesc, IID_PPV_ARGS(&mCommandQueue));
+
+	ThrowIfFailed(hr);
 }
 
 bool D3DApp::InitMainWindow()
@@ -77,7 +134,7 @@ bool D3DApp::InitMainWindow()
 	}
 
 	// create window instance
-	mhWnd = CreateWindowEx(0, pClassName, "Game Window", WS_CAPTION | WS_MINIMIZEBOX | WS_SYSMENU, 200, 200, mClientWidth, mClientHeigth, nullptr, nullptr, mhInst, nullptr);
+	mhWnd = CreateWindowEx(0, pClassName, "Game Window", WS_CAPTION | WS_MINIMIZEBOX | WS_SYSMENU, 200, 200, mClientWidth, mClientHeight, nullptr, nullptr, mhInst, nullptr);
 	if (!mhWnd)
 	{
 		MessageBox(0, "CreateWindow Failed.", 0, 0);
@@ -91,15 +148,18 @@ bool D3DApp::InitMainWindow()
 	return true;
 }
 
-bool D3DApp::InitDirect3D()
+void D3DApp::InitD3D()
 {
 	HRESULT hr = D3D12CreateDevice(
 		nullptr,                // pAdapter
 		D3D_FEATURE_LEVEL_11_0, // Minimum feature level this app can support
-		IID_PPV_ARGS(&md3dDevice)
+		IID_PPV_ARGS(&mD3DDevice)
 	);
 
-	return true;
+	if (FAILED(hr))
+	{
+		MessageBox(nullptr, "Failed to initialize Direct3D", "Error", MB_OK);
+	}
 }
 
 int D3DApp::Run()
@@ -122,4 +182,16 @@ int D3DApp::Run()
 	}
 
 	return (int)msg.wParam;;
+}
+
+void D3DApp::Update() {
+
+}
+
+void D3DApp::ThrowIfFailed(HRESULT hr)
+{
+	if (FAILED(hr))
+	{
+		throw std::runtime_error("A Direct3D operation failed with code: " + std::to_string(hr));
+	}
 }
