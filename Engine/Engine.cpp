@@ -40,15 +40,12 @@ Engine::Engine(HINSTANCE hInstance) : mhInst(hInstance)
 	CreateCommandAllocator();
 	CreateCommandList();
 	CreateCommandQueue();
+	CreateRtvAndDsvDescriptorHeaps();
 }
 
 Engine::~Engine()
 {
 
-}
-
-void Engine::Initialize()
-{
 }
 
 void Engine::SynchroProcess()
@@ -109,6 +106,30 @@ void Engine::CreateCommandQueue()
 	ThrowIfFailed(hr);
 }
 
+void Engine::CreateRtvAndDsvDescriptorHeaps()
+{
+	// config of RTV desc heap
+	D3D12_DESCRIPTOR_HEAP_DESC rtvHeapDesc;
+	//rtvHeapDesc.NumDescriptors = mBufferCount;
+	rtvHeapDesc.NumDescriptors = 2;
+	rtvHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_RTV;
+	rtvHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
+	rtvHeapDesc.NodeMask = 0;
+	// creation of RTV desc heap
+	ThrowIfFailed(mD3DDevice->CreateDescriptorHeap(
+		&rtvHeapDesc, IID_PPV_ARGS(mRtvHeap.GetAddressOf())));
+
+	// config of DSV desc heap
+	D3D12_DESCRIPTOR_HEAP_DESC dsvHeapDesc;
+	dsvHeapDesc.NumDescriptors = 1;
+	dsvHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_DSV;
+	dsvHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
+	dsvHeapDesc.NodeMask = 0;
+	// creation of DSV desc heap
+	ThrowIfFailed(mD3DDevice->CreateDescriptorHeap(
+		&dsvHeapDesc, IID_PPV_ARGS(mDsvHeap.GetAddressOf())));
+}
+
 bool Engine::InitMainWindow()
 {
 	const auto pClassName = "GameWnd";
@@ -150,6 +171,8 @@ bool Engine::InitMainWindow()
 
 void Engine::InitD3D()
 {
+	ThrowIfFailed(CreateDXGIFactory1(IID_PPV_ARGS(&mDxgiFactory)));
+
 	HRESULT hr = D3D12CreateDevice(
 		nullptr,                // pAdapter
 		D3D_FEATURE_LEVEL_11_0, // Minimum feature level this app can support

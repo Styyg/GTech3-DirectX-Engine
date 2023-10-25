@@ -14,7 +14,6 @@ public:
     Engine(HINSTANCE hInstance);
     virtual ~Engine();
 
-    virtual void Initialize();
     int Run();
     void Update();
 
@@ -25,6 +24,7 @@ public:
     void CreateCommandQueue();
     void CreateCommandList();
     void CreateCommandAllocator();
+    void CreateRtvAndDsvDescriptorHeaps();
 
 
     // Utils
@@ -34,19 +34,24 @@ private:
     HINSTANCE mhInst = nullptr;
     HWND mhWnd = nullptr;
     ComPtr<ID3D12Device> mD3DDevice;
-    ComPtr<IDXGIFactory4> mdxgiFactory;
+    ComPtr<IDXGIFactory4> mDxgiFactory;
     ComPtr<IDXGISwapChain> mSwapChain;
 
     ComPtr<ID3D12Fence> mFence;
     UINT64 mFenceValue = 0;
 
+    ComPtr<ID3D12GraphicsCommandList> mCommandList;
     ComPtr<ID3D12CommandAllocator> mCommandAllocator;
     ComPtr<ID3D12CommandQueue> mCommandQueue;
-    ComPtr<ID3D12GraphicsCommandList> mCommandList;
 
     D3D12_FEATURE_DATA_MULTISAMPLE_QUALITY_LEVELS msQualityLevels;
 
+    ComPtr<ID3D12DescriptorHeap> mRtvHeap;
+    ComPtr<ID3D12DescriptorHeap> mDsvHeap;
+
     int mClientWidth = 800;
     int mClientHeight = 600;
+
+    int mCurrentBackBuffer = 0;
 };
 
