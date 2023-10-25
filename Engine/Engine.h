@@ -25,6 +25,7 @@ public:
     void CreateCommandList();
     void CreateCommandAllocator();
     void SwapChain();
+    void CreateRtvAndDsvDescriptorHeaps();
 
     // Utils
     void ThrowIfFailed(HRESULT hr);
@@ -45,8 +46,13 @@ private:
 
     D3D12_FEATURE_DATA_MULTISAMPLE_QUALITY_LEVELS msQualityLevels;
 
+    ComPtr<ID3D12DescriptorHeap> mRtvHeap;
+    ComPtr<ID3D12DescriptorHeap> mDsvHeap;
+
     int mClientWidth = 800;
     int mClientHeight = 600;
+
+    int mCurrentBackBuffer = 0;
     int mBufferCount = 2;
 };
 
