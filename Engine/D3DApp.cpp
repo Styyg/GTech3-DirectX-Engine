@@ -69,20 +69,36 @@ bool D3DApp::InitMainWindow()
 	wc.lpszMenuName = nullptr;
 	wc.lpszClassName = pClassName;
 	wc.hIconSm = nullptr;
-	RegisterClassEx(&wc);
+
+	if (!RegisterClassEx(&wc))
+	{
+		MessageBox(0, "RegisterClass Failed.", 0, 0);
+		return false;
+	}
 
 	// create window instance
-	mhWnd = CreateWindowEx(0, pClassName, "Game Window", WS_CAPTION | WS_MINIMIZEBOX | WS_SYSMENU, 200, 200, 640, 480, nullptr, nullptr, mhInst, nullptr);
+	mhWnd = CreateWindowEx(0, pClassName, "Game Window", WS_CAPTION | WS_MINIMIZEBOX | WS_SYSMENU, 200, 200, mClientWidth, mClientHeigth, nullptr, nullptr, mhInst, nullptr);
+	if (!mhWnd)
+	{
+		MessageBox(0, "CreateWindow Failed.", 0, 0);
+		return false;
+	}
 
 	// show the damn window
 	ShowWindow(mhWnd, SW_SHOW);
-	UpdateWindow(mhWnd);
+	//UpdateWindow(mhWnd);
 
 	return true;
 }
 
 bool D3DApp::InitDirect3D()
 {
+	HRESULT hr = D3D12CreateDevice(
+		nullptr,                // pAdapter
+		D3D_FEATURE_LEVEL_11_0, // Minimum feature level this app can support
+		IID_PPV_ARGS(&md3dDevice)
+	);
+
 	return true;
 }
 
@@ -93,7 +109,7 @@ int D3DApp::Run()
 	while (msg.message != WM_QUIT)
 	{
 		// If there are Window messages then process them.
-		if (GetMessage(&msg, 0, 0, 0))
+		if (PeekMessage(&msg, 0, 0, 0, PM_REMOVE))
 		{
 			TranslateMessage(&msg);
 			DispatchMessage(&msg);
