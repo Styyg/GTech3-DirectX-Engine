@@ -40,6 +40,7 @@ D3DApp::D3DApp(HINSTANCE hInstance)	: mhInst(hInstance)
 	CreateCommandAllocator();
 	CreateCommandList();
 	CreateCommandQueue();
+	SwapChain();
 }
 
 D3DApp::~D3DApp()
@@ -81,11 +82,12 @@ void D3DApp::CreateCommandAllocator()
 	ThrowIfFailed(hr);
 }
 
-void D3DApp::ConfigSwapChain()
+void D3DApp::SwapChain()
 {
 	DXGI_SWAP_CHAIN_DESC sd;
+	
 	ZeroMemory(&sd, sizeof(sd));
-	sd.BufferCount = 2;
+	sd.BufferCount = mBufferCount;
 	sd.BufferDesc.Width = mClientWidth;
 	sd.BufferDesc.Height = mClientHeight;
 	sd.BufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
@@ -95,6 +97,9 @@ void D3DApp::ConfigSwapChain()
 	sd.SampleDesc.Count = 1;
 	sd.SampleDesc.Quality = 0;
 	sd.Windowed = true;
+
+	// Create Factory
+	ThrowIfFailed(CreateDXGIFactory1(IID_PPV_ARGS(&mDxgiFactory)));
 
 	// Create the swap chain
 	ComPtr<IDXGISwapChain> swapChain;

@@ -24,8 +24,7 @@ public:
     void CreateCommandQueue();
     void CreateCommandList();
     void CreateCommandAllocator();
-
-    void ConfigSwapChain();
+    void SwapChain();
 
     // Utils
     void ThrowIfFailed(HRESULT hr);
@@ -33,20 +32,21 @@ public:
 private:
     HINSTANCE mhInst = nullptr;
     HWND mhWnd = nullptr;
-    ComPtr<ID3D12Device> mD3DDevice;
-    ComPtr<IDXGIFactory4> mDxgiFactory;
-    ComPtr<IDXGISwapChain> mSwapChain;
 
-    ComPtr<ID3D12Fence> mFence;
     UINT64 mFenceValue = 0;
 
+    ComPtr<ID3D12Fence> mFence;
     ComPtr<ID3D12CommandAllocator> mCommandAllocator;
     ComPtr<ID3D12CommandQueue> mCommandQueue;
     ComPtr<ID3D12GraphicsCommandList> mCommandList;
+    ComPtr<ID3D12Device> mD3DDevice;
+    ComPtr<IDXGISwapChain> mSwapChain;
+    ComPtr<IDXGIFactory4> mDxgiFactory;
 
     D3D12_FEATURE_DATA_MULTISAMPLE_QUALITY_LEVELS msQualityLevels;
 
     int mClientWidth = 800;
     int mClientHeight = 600;
+    int mBufferCount = 2;
 };
 
