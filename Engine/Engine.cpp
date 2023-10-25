@@ -11,7 +11,7 @@ LRESULT CALLBACK WindowProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 	case WM_KEYDOWN:
 		if (wParam == 'F')
 		{
-			SetWindowText(hWnd, "Ta mère");
+			SetWindowText(hWnd, "Ta mï¿½re");
 		}
 		break;
 	case WM_KEYUP:
@@ -40,6 +40,7 @@ Engine::Engine(HINSTANCE hInstance) : mhInst(hInstance)
 	CreateCommandAllocator();
 	CreateCommandList();
 	CreateCommandQueue();
+	SwapChain();
 	CreateRtvAndDsvDescriptorHeaps();
 }
 
@@ -69,7 +70,7 @@ void Engine::SetMSAA()
 	ThrowIfFailed(mD3DDevice->CheckFeatureSupport(D3D12_FEATURE_MULTISAMPLE_QUALITY_LEVELS, &msQualityLevels, sizeof(msQualityLevels)));
 
 	if (msQualityLevels.NumQualityLevels == 0) {
-		MessageBox(0, "4x MSAA n'est pas supporté sur votre appareil", "Erreur", MB_OK);
+		MessageBox(0, "4x MSAA n'est pas supportï¿½ sur votre appareil", "Erreur", MB_OK);
 
 		// ex : 1x MSAA ou pas de MSAA
 	}
@@ -80,6 +81,37 @@ void Engine::CreateCommandAllocator()
 	HRESULT hr = mD3DDevice->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT, IID_PPV_ARGS(&mCommandAllocator));
 
 	ThrowIfFailed(hr);
+}
+
+void Engine::SwapChain()
+{
+	DXGI_SWAP_CHAIN_DESC sd;
+	
+	ZeroMemory(&sd, sizeof(sd));
+	sd.BufferCount = mBufferCount;
+	sd.BufferDesc.Width = mClientWidth;
+	sd.BufferDesc.Height = mClientHeight;
+	sd.BufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+	sd.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
+	sd.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;
+	sd.OutputWindow = mhWnd;
+	sd.SampleDesc.Count = 1;
+	sd.SampleDesc.Quality = 0;
+	sd.Windowed = true;
+
+	// Create Factory
+	ThrowIfFailed(CreateDXGIFactory1(IID_PPV_ARGS(&mDxgiFactory)));
+
+	// Create the swap chain
+	ComPtr<IDXGISwapChain> swapChain;
+	ThrowIfFailed(mDxgiFactory->CreateSwapChain(
+		mCommandQueue.Get(),
+		&sd,
+		&swapChain)
+	);
+
+	// Query the swap chain to the IDXGISwapChain3 interface
+	ThrowIfFailed(swapChain.As(&mSwapChain));
 }
 
 void Engine::CreateCommandList()
