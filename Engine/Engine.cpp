@@ -55,9 +55,9 @@ void Engine::SynchroProcess()
 
 	ThrowIfFailed(hr);
 
-	UINT mRtvDescriptorSize = mD3DDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
-	UINT mDsvDescriptorSize = mD3DDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_DSV);
-	UINT mCbvSrvUavDescriptorSize = mD3DDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+	mRtvDescriptorSize = mD3DDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
+	mDsvDescriptorSize = mD3DDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_DSV);
+	mCbvSrvUavDescriptorSize = mD3DDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 }
 
 void Engine::SetMSAA()
@@ -88,7 +88,7 @@ void Engine::SwapChain()
 	DXGI_SWAP_CHAIN_DESC sd;
 	
 	ZeroMemory(&sd, sizeof(sd));
-	sd.BufferCount = mBufferCount;
+	sd.BufferCount = mSwapChainBufferCount;
 	sd.BufferDesc.Width = mClientWidth;
 	sd.BufferDesc.Height = mClientHeight;
 	sd.BufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
@@ -142,8 +142,7 @@ void Engine::CreateRtvAndDsvDescriptorHeaps()
 {
 	// config of RTV desc heap
 	D3D12_DESCRIPTOR_HEAP_DESC rtvHeapDesc;
-	//rtvHeapDesc.NumDescriptors = mBufferCount;
-	rtvHeapDesc.NumDescriptors = 2;
+	rtvHeapDesc.NumDescriptors = mSwapChainBufferCount;
 	rtvHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_RTV;
 	rtvHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
 	rtvHeapDesc.NodeMask = 0;
@@ -160,6 +159,25 @@ void Engine::CreateRtvAndDsvDescriptorHeaps()
 	// creation of DSV desc heap
 	ThrowIfFailed(mD3DDevice->CreateDescriptorHeap(
 		&dsvHeapDesc, IID_PPV_ARGS(mDsvHeap.GetAddressOf())));
+}
+
+ID3D12Resource* Engine::CurrentBackBuffer()const
+{
+	return mSwapChainBuffer[mCurrentBackBuffer].Get();
+}
+
+D3D12_CPU_DESCRIPTOR_HANDLE Engine::CurrentBackBufferView()const
+{
+	// CD3DX12 constructor to offset to the RTV of the current back buffer.
+	return CD3DX12_CPU_DESCRIPTOR_HANDLE(
+		mRtvHeap->GetCPUDescriptorHandleForHeapStart(),// handle start
+		mCurrentBackBuffer, // index to offset
+		mRtvDescriptorSize); // byte size of descriptor
+}
+
+D3D12_CPU_DESCRIPTOR_HANDLE Engine::DepthStencilView()const
+{
+	return mDsvHeap->GetCPUDescriptorHandleForHeapStart();
 }
 
 bool Engine::InitMainWindow()
