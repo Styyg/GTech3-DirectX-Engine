@@ -1,6 +1,8 @@
 #include "Engine.h"
 #include <sstream>
 
+using namespace DirectX;
+
 LRESULT CALLBACK WindowProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
 	switch (msg)
@@ -31,6 +33,13 @@ LRESULT CALLBACK WindowProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 	return DefWindowProc(hWnd, msg, wParam, lParam);
 }
 
+
+struct Vertex
+{
+	XMFLOAT3 Pos;
+	XMFLOAT4 Color;
+};
+
 Engine::Engine(HINSTANCE hInstance) : mhInst(hInstance)
 {
 	InitMainWindow();
@@ -43,6 +52,7 @@ Engine::Engine(HINSTANCE hInstance) : mhInst(hInstance)
 	SwapChain();
 	CreateRtvAndDsvDescriptorHeaps();
 	DescribeDepthStencilBuffer();
+	BuildInputLayout();
 }
 
 Engine::~Engine()
@@ -266,6 +276,15 @@ D3D12_CPU_DESCRIPTOR_HANDLE Engine::CurrentBackBufferView()const
 D3D12_CPU_DESCRIPTOR_HANDLE Engine::DepthStencilView()const
 {
 	return mDsvHeap->GetCPUDescriptorHandleForHeapStart();
+}
+
+void Engine::BuildInputLayout()
+{
+	mInputLayoutDesc =
+	{
+		{"POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0},
+		{"COLOR", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, 12, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0}
+	};
 }
 
 bool Engine::InitMainWindow()
