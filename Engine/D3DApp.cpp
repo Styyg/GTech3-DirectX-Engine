@@ -47,10 +47,6 @@ D3DApp::~D3DApp()
 
 }
 
-void D3DApp::Initialize()
-{
-}
-
 void D3DApp::SynchroProcess()
 {
 	HRESULT hr = mD3DDevice->CreateFence(0, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&mFence));
@@ -83,6 +79,33 @@ void D3DApp::CreateCommandAllocator()
 	HRESULT hr = mD3DDevice->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT, IID_PPV_ARGS(&mCommandAllocator));
 
 	ThrowIfFailed(hr);
+}
+
+void D3DApp::ConfigSwapChain()
+{
+	DXGI_SWAP_CHAIN_DESC sd;
+	ZeroMemory(&sd, sizeof(sd));
+	sd.BufferCount = 2;
+	sd.BufferDesc.Width = mClientWidth;
+	sd.BufferDesc.Height = mClientHeight;
+	sd.BufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+	sd.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
+	sd.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;
+	sd.OutputWindow = mhWnd;
+	sd.SampleDesc.Count = 1;
+	sd.SampleDesc.Quality = 0;
+	sd.Windowed = true;
+
+	// Create the swap chain
+	ComPtr<IDXGISwapChain> swapChain;
+	ThrowIfFailed(mDxgiFactory->CreateSwapChain(
+		mCommandQueue.Get(),
+		&sd,
+		&swapChain)
+	);
+
+	// Query the swap chain to the IDXGISwapChain3 interface
+	ThrowIfFailed(swapChain.As(&mSwapChain));
 }
 
 void D3DApp::CreateCommandList()

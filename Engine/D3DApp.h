@@ -14,7 +14,6 @@ public:
     D3DApp(HINSTANCE hInstance);
     virtual ~D3DApp();
 
-    virtual void Initialize();
     int Run();
     void Update();
 
@@ -26,6 +25,7 @@ public:
     void CreateCommandList();
     void CreateCommandAllocator();
 
+    void ConfigSwapChain();
 
     // Utils
     void ThrowIfFailed(HRESULT hr);
@@ -34,7 +34,7 @@ private:
     HINSTANCE mhInst = nullptr;
     HWND mhWnd = nullptr;
     ComPtr<ID3D12Device> mD3DDevice;
-    ComPtr<IDXGIFactory4> mdxgiFactory;
+    ComPtr<IDXGIFactory4> mDxgiFactory;
     ComPtr<IDXGISwapChain> mSwapChain;
 
     ComPtr<ID3D12Fence> mFence;
