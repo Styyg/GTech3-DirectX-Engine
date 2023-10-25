@@ -183,6 +183,25 @@ void Engine::DescribeDepthStencilBuffer()
 	);
 }
 
+void Engine::SetupGraphicsPipeline()
+{
+	mViewport.TopLeftX = 0.0f;
+	mViewport.TopLeftY = 0.0f;
+	mViewport.Width = static_cast<float>(mClientWidth);
+	mViewport.Height = static_cast<float>(mClientHeight);
+	mViewport.MinDepth = 0.0f;
+	mViewport.MaxDepth = 1.0f;
+
+	mCommandList->RSSetViewports(1, &mViewport);
+
+	mScissorRect.left = 0;
+	mScissorRect.top = 0;
+	mScissorRect.right = mClientWidth / 2;
+	mScissorRect.bottom = mClientHeight / 2;
+
+	mCommandList->RSSetScissorRects(1, &mScissorRect);
+}
+
 void Engine::CreateCommandList()
 {
 	HRESULT hr = mD3DDevice->CreateCommandList(
