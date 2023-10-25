@@ -41,6 +41,7 @@ Engine::Engine(HINSTANCE hInstance) : mhInst(hInstance)
 	CreateCommandList();
 	CreateCommandQueue();
 	SwapChain();
+	CreateRtvAndDsvDescriptorHeaps();
 }
 
 Engine::~Engine()
@@ -161,6 +162,48 @@ void Engine::CreateCommandQueue()
 	ThrowIfFailed(hr);
 }
 
+void Engine::CreateRtvAndDsvDescriptorHeaps()
+{
+	// config of RTV desc heap
+	D3D12_DESCRIPTOR_HEAP_DESC rtvHeapDesc;
+	rtvHeapDesc.NumDescriptors = mSwapChainBufferCount;
+	rtvHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_RTV;
+	rtvHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
+	rtvHeapDesc.NodeMask = 0;
+	// creation of RTV desc heap
+	ThrowIfFailed(mD3DDevice->CreateDescriptorHeap(
+		&rtvHeapDesc, IID_PPV_ARGS(mRtvHeap.GetAddressOf())));
+
+	// config of DSV desc heap
+	D3D12_DESCRIPTOR_HEAP_DESC dsvHeapDesc;
+	dsvHeapDesc.NumDescriptors = 1;
+	dsvHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_DSV;
+	dsvHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
+	dsvHeapDesc.NodeMask = 0;
+	// creation of DSV desc heap
+	ThrowIfFailed(mD3DDevice->CreateDescriptorHeap(
+		&dsvHeapDesc, IID_PPV_ARGS(mDsvHeap.GetAddressOf())));
+}
+
+ID3D12Resource* Engine::CurrentBackBuffer()const
+{
+	return mSwapChainBuffer[mCurrentBackBuffer].Get();
+}
+
+D3D12_CPU_DESCRIPTOR_HANDLE Engine::CurrentBackBufferView()const
+{
+	// CD3DX12 constructor to offset to the RTV of the current back buffer.
+	return CD3DX12_CPU_DESCRIPTOR_HANDLE(
+		mRtvHeap->GetCPUDescriptorHandleForHeapStart(),// handle start
+		mCurrentBackBuffer, // index to offset
+		mRtvDescriptorSize); // byte size of descriptor
+}
+
+D3D12_CPU_DESCRIPTOR_HANDLE Engine::DepthStencilView()const
+{
+	return mDsvHeap->GetCPUDescriptorHandleForHeapStart();
+}
+
 bool Engine::InitMainWindow()
 {
 	const auto pClassName = "GameWnd";
@@ -202,6 +245,8 @@ bool Engine::InitMainWindow()
 
 void Engine::InitD3D()
 {
+	ThrowIfFailed(CreateDXGIFactory1(IID_PPV_ARGS(&mDxgiFactory)));
+
 	HRESULT hr = D3D12CreateDevice(
 		nullptr,
 		D3D_FEATURE_LEVEL_11_0,
