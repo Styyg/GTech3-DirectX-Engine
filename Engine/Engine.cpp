@@ -54,9 +54,9 @@ void Engine::SynchroProcess()
 
 	ThrowIfFailed(hr);
 
-	UINT mRtvDescriptorSize = mD3DDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
-	UINT mDsvDescriptorSize = mD3DDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_DSV);
-	UINT mCbvSrvUavDescriptorSize = mD3DDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+	mRtvDescriptorSize = mD3DDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
+	mDsvDescriptorSize = mD3DDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_DSV);
+	mCbvSrvUavDescriptorSize = mD3DDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 }
 
 void Engine::SetMSAA()
@@ -87,7 +87,7 @@ void Engine::SwapChain()
 	DXGI_SWAP_CHAIN_DESC sd;
 	
 	ZeroMemory(&sd, sizeof(sd));
-	sd.BufferCount = mBufferCount;
+	sd.BufferCount = mSwapChainBufferCount;
 	sd.BufferDesc.Width = mClientWidth;
 	sd.BufferDesc.Height = mClientHeight;
 	sd.BufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
@@ -111,6 +111,30 @@ void Engine::SwapChain()
 
 	// Query the swap chain to the IDXGISwapChain3 interface
 	ThrowIfFailed(swapChain.As(&mSwapChain));
+}
+
+void Engine::RenderTargetView()
+{
+	ComPtr<ID3D12Resource> backBuffer;
+	ThrowIfFailed(mSwapChain->GetBuffer(0, IID_PPV_ARGS(&backBuffer)));
+
+	D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle = mRtvHeap->GetCPUDescriptorHandleForHeapStart();
+	mD3DDevice->CreateRenderTargetView(backBuffer.Get(), nullptr, rtvHandle);
+
+	ComPtr<ID3D12Resource> mSwapChainBuffer[mSwapChainBufferCount];
+	CD3DX12_CPU_DESCRIPTOR_HANDLE rtvHeapHandle(mRtvHeap->GetCPUDescriptorHandleForHeapStart());
+
+	for (UINT i = 0; i < mSwapChainBufferCount; i++)
+	{
+		// Get the ith buffer in the swap chain.
+		ThrowIfFailed(mSwapChain->GetBuffer(i, IID_PPV_ARGS(&mSwapChainBuffer[i])));
+
+		// Create an RTV to it.
+		mD3DDevice->CreateRenderTargetView(mSwapChainBuffer[i].Get(), nullptr, rtvHeapHandle);
+
+		// Next entry in heap.
+		rtvHeapHandle.Offset(1, mRtvDescriptorSize);
+	}
 }
 
 void Engine::CreateCommandList()
@@ -179,8 +203,8 @@ bool Engine::InitMainWindow()
 void Engine::InitD3D()
 {
 	HRESULT hr = D3D12CreateDevice(
-		nullptr,                // pAdapter
-		D3D_FEATURE_LEVEL_11_0, // Minimum feature level this app can support
+		nullptr,
+		D3D_FEATURE_LEVEL_11_0,
 		IID_PPV_ARGS(&mD3DDevice)
 	);
 

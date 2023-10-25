@@ -25,6 +25,7 @@ public:
     void CreateCommandList();
     void CreateCommandAllocator();
     void SwapChain();
+    void RenderTargetView();
 
     // Utils
     void ThrowIfFailed(HRESULT hr);
@@ -34,6 +35,10 @@ private:
     HWND mhWnd = nullptr;
 
     UINT64 mFenceValue = 0;
+
+    UINT mRtvDescriptorSize;
+    UINT mDsvDescriptorSize;
+    UINT mCbvSrvUavDescriptorSize;
 
     ComPtr<ID3D12Fence> mFence;
     ComPtr<ID3D12CommandAllocator> mCommandAllocator;
@@ -47,6 +52,6 @@ private:
 
     int mClientWidth = 800;
     int mClientHeight = 600;
-    int mBufferCount = 2;
-};
 
+    static const int mSwapChainBufferCount = 2;
+};
