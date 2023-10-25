@@ -1,7 +1,7 @@
 #pragma once
 
 #include <windows.h>
-#include <d3d12.h>
+#include "d3dx12.h"
 #include <D3Dcompiler.h>
 #include <dxgi1_4.h>
 #include <wrl.h>
@@ -27,6 +27,11 @@ public:
     void SwapChain();
     void CreateRtvAndDsvDescriptorHeaps();
 
+    ID3D12Resource* CurrentBackBuffer()const;
+    D3D12_CPU_DESCRIPTOR_HANDLE CurrentBackBufferView()const;
+    D3D12_CPU_DESCRIPTOR_HANDLE DepthStencilView()const;
+
+
     // Utils
     void ThrowIfFailed(HRESULT hr);
 
@@ -47,12 +52,17 @@ private:
     D3D12_FEATURE_DATA_MULTISAMPLE_QUALITY_LEVELS msQualityLevels;
 
     ComPtr<ID3D12DescriptorHeap> mRtvHeap;
-    ComPtr<ID3D12DescriptorHeap> mDsvHeap;
+    ComPtr<ID3D12DescriptorHeap> mDsvHeap;	
+    
+    UINT mRtvDescriptorSize;
+    UINT mDsvDescriptorSize;
+    UINT mCbvSrvUavDescriptorSize;
 
     int mClientWidth = 800;
     int mClientHeight = 600;
 
     int mCurrentBackBuffer = 0;
-    int mBufferCount = 2;
+    static const int mSwapChainBufferCount = 2;
+    ComPtr<ID3D12Resource> mSwapChainBuffer[mSwapChainBufferCount];
 };
 
