@@ -1,5 +1,5 @@
 #include <Windows.h>
-#include "D3DApp.h"
+#include "Engine.h"
 #include <sstream>
 
 int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
@@ -9,7 +9,7 @@ int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 	_CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
 #endif
 
-	D3DApp appEngine(hInstance);
+	Engine appEngine(hInstance);
 
 	return appEngine.Run();
 }
