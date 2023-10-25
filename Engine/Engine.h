@@ -28,6 +28,7 @@ public:
     void CreateRtvAndDsvDescriptorHeaps();
     void RenderTargetView();
     void DescribeDepthStencilBuffer();
+    void SetupGraphicsPipeline();
 
     ID3D12Resource* CurrentBackBuffer()const;
     D3D12_CPU_DESCRIPTOR_HANDLE CurrentBackBufferView()const;
@@ -61,6 +62,9 @@ private:
     ComPtr<ID3D12Resource> mDepthStencilBuffer;
 
     D3D12_FEATURE_DATA_MULTISAMPLE_QUALITY_LEVELS msQualityLevels;
+
+    D3D12_VIEWPORT mViewport;
+    D3D12_RECT mScissorRect;
 
     int mClientWidth = 800;
     int mClientHeight = 600;
