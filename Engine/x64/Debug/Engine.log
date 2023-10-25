@@ -1,2 +1,6 @@
-﻿RC : fatal error RC1110: could not open Engine.rc
-  
+﻿  window.cpp
+  windowMessageMap.cpp
+  WinMain.cpp
+C:\Users\jujud\GitHub\GTech3-DirectX-Engine\Engine\WinMain.cpp(18,13): warning C4244: 'return' : conversion de 'WPARAM' en 'int', perte possible de données
+  Génération de code en cours...
+  Engine.vcxproj -> C:\Users\jujud\GitHub\GTech3-DirectX-Engine\x64\Debug\Engine.exe
