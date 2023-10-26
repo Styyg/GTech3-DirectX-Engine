@@ -1,6 +1,7 @@
 #pragma once
 
 #include <windows.h>
+#include <windef.h>
 #include "d3dx12.h"
 #include <D3Dcompiler.h>
 #include <dxgi1_4.h>
@@ -14,13 +15,11 @@ using namespace Microsoft::WRL;
 class Engine
 {
 public:
-    Engine(HINSTANCE hInstance);
+    Engine(HWND hWnd);
     virtual ~Engine();
 
-    int Run();
     void Update();
 
-    bool InitMainWindow();
     void InitD3D();
     void SynchroProcess();
     void SetMSAA();
@@ -33,14 +32,17 @@ public:
     void DescribeDepthStencilBuffer();
     void SetupGraphicsPipeline();
     void BuildInputLayout();
+    void BuildConstantBuffers();
+    LONG GetClientWidth();
+    LONG GetClientHeight();
 
     ID3D12Resource* CurrentBackBuffer()const;
     D3D12_CPU_DESCRIPTOR_HANDLE CurrentBackBufferView()const;
     D3D12_CPU_DESCRIPTOR_HANDLE DepthStencilView()const;
 
 private:
-    HINSTANCE mhInst = nullptr;
-    HWND mhWnd = nullptr;
+    //HINSTANCE mhInst = nullptr;
+    HWND mHWnd = nullptr;
 
     UINT64 mFenceValue = 0;
 
@@ -69,7 +71,7 @@ private:
     D3D12_VIEWPORT mViewport;
     D3D12_RECT mScissorRect;
 
-    int mClientWidth = 800;
-    int mClientHeight = 600;
+    //int mClientWidth = 800;
+    //int mClientHeight = 600;
     int mCurrentBackBuffer = 0;
 };
