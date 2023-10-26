@@ -1,4 +1,3 @@
-#include <Windows.h>
 #include "Engine.h"
 #include <sstream>
 
