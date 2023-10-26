@@ -4,8 +4,10 @@
 
 struct shaderStruct {
 	LPCWSTR path;
-	LPCSTR shaderVersion;
-	LPCSTR entryPoint;
+	LPCSTR vsVersion;
+	LPCSTR psVersion;
+	LPCSTR vsEntryPoint;
+	LPCSTR psEntryPoint;
 	ID3DBlob** shaderBlob;
 };
 

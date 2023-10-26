@@ -10,6 +10,7 @@
 #include "d3dUtil.h"
 
 using namespace Microsoft::WRL;
+using namespace std;
 
 class Engine
 {
@@ -63,10 +64,12 @@ private:
     ComPtr<ID3D12DescriptorHeap> mDsvHeap;	
     ComPtr<ID3D12Resource> mSwapChainBuffer[mSwapChainBufferCount];
     ComPtr<ID3D12Resource> mDepthStencilBuffer;
+    ComPtr<ID3D12RootSignature> mRootSignature;
+    ComPtr<ID3D12DescriptorHeap> mCbvHeap;
 
     D3D12_FEATURE_DATA_MULTISAMPLE_QUALITY_LEVELS msQualityLevels;
 
-    std::vector<D3D12_INPUT_ELEMENT_DESC> mInputLayoutDesc;
+    vector<D3D12_INPUT_ELEMENT_DESC> mInputLayoutDesc;
 
     D3D12_VIEWPORT mViewport;
     D3D12_RECT mScissorRect;

@@ -108,9 +108,7 @@
     <ClInclude Include="ShaderManager.h" />
   </ItemGroup>
   <ItemGroup>
-    <Text Include="Shaders\Shader.hlsl">
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
+    <Text Include="Shaders\cube_shader.hlsl">
       <FileType>Document</FileType>
     </Text>
   </ItemGroup>

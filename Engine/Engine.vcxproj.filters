@@ -20,6 +20,6 @@
     <ClInclude Include="ShaderManager.h" />
   </ItemGroup>
   <ItemGroup>
-    <Text Include="Shaders\Shader.hlsl" />
+    <Text Include="Shaders\cube_shader.hlsl" />
   </ItemGroup>
 </Project>

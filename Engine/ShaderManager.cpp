@@ -15,14 +15,18 @@ ShaderManager::~ShaderManager()
 void ShaderManager::InitShaders()
 {
     // Cube Shader
-    shaderStruct cubeShader;
+    shaderStruct cubeShader{};
 
-    cubeShader.path = L"Shaders/Shader.hlsl";
-    cubeShader.shaderVersion = "vs_5_0";
-    cubeShader.entryPoint = "main";
+    cubeShader.path = L"Shaders/cube_shader.hlsl";
+    cubeShader.vsVersion = "vs_5_0";
+    cubeShader.psVersion = "ps_5_0";
+    cubeShader.vsEntryPoint = "VS";
+    cubeShader.psEntryPoint = "PS";
+
     cubeShader.shaderBlob = &mVertexShaderBlob;
 
-    CompileShader(cubeShader.path, cubeShader.shaderVersion, cubeShader.entryPoint, cubeShader.shaderBlob);
+    CompileShader(cubeShader.path, cubeShader.vsVersion, cubeShader.vsEntryPoint, cubeShader.shaderBlob);
+    CompileShader(cubeShader.path, cubeShader.psVersion, cubeShader.psEntryPoint, cubeShader.shaderBlob);
 
     // Sphere Shader
 
