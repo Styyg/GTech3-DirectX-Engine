@@ -7,24 +7,25 @@ LRESULT CALLBACK WindowProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
 	switch (msg)
 	{
+	case WM_DESTROY:
 	case WM_CLOSE:
 		PostQuitMessage(0);
 		break;
 	case WM_KEYDOWN:
 		if (wParam == 'F')
 		{
-			SetWindowText(hWnd, "Ta m�re");
+			SetWindowText(hWnd, L"Ta mère");
 		}
 		break;
 	case WM_KEYUP:
 		if (wParam == 'F')
 		{
-			SetWindowText(hWnd, "Une fenetre");
+			SetWindowText(hWnd, L"Une fenetre");
 		}
 		break;
 	case WM_LBUTTONDOWN:
 		const POINTS pt = MAKEPOINTS(lParam);
-		std::ostringstream oss;
+		std::wstringstream oss;
 		oss << "(" << pt.x << "," << pt.y << ")";
 		SetWindowText(hWnd, oss.str().c_str());
 		break;
@@ -81,7 +82,7 @@ void Engine::SetMSAA()
 	ThrowIfFailed(mD3DDevice->CheckFeatureSupport(D3D12_FEATURE_MULTISAMPLE_QUALITY_LEVELS, &msQualityLevels, sizeof(msQualityLevels)));
 
 	if (msQualityLevels.NumQualityLevels == 0) {
-		MessageBox(0, "4x MSAA n'est pas support� sur votre appareil", "Erreur", MB_OK);
+		MessageBox(0, L"4x MSAA n'est pas supporté sur votre appareil", L"Erreur", MB_OK);
 
 		// ex : 1x MSAA ou pas de MSAA
 	}
@@ -289,7 +290,7 @@ void Engine::BuildInputLayout()
 
 bool Engine::InitMainWindow()
 {
-	const auto pClassName = "GameWnd";
+	const auto pClassName = L"GameWnd";
 	// register window class
 	WNDCLASSEX wc = { 0 };
 	wc.cbSize = sizeof(wc);
@@ -307,15 +308,15 @@ bool Engine::InitMainWindow()
 
 	if (!RegisterClassEx(&wc))
 	{
-		MessageBox(0, "RegisterClass Failed.", 0, 0);
+		MessageBox(0, L"RegisterClass Failed.", 0, 0);
 		return false;
 	}
 
 	// create window instance
-	mhWnd = CreateWindowEx(0, pClassName, "Game Window", WS_CAPTION | WS_MINIMIZEBOX | WS_SYSMENU, 200, 200, mClientWidth, mClientHeight, nullptr, nullptr, mhInst, nullptr);
+	mhWnd = CreateWindowEx(0, pClassName, L"Game Window", WS_CAPTION | WS_MINIMIZEBOX | WS_SYSMENU, 200, 200, mClientWidth, mClientHeight, nullptr, nullptr, mhInst, nullptr);
 	if (!mhWnd)
 	{
-		MessageBox(0, "CreateWindow Failed.", 0, 0);
+		MessageBox(0, L"CreateWindow Failed.", 0, 0);
 		return false;
 	}
 
@@ -338,7 +339,7 @@ void Engine::InitD3D()
 
 	if (FAILED(hr))
 	{
-		MessageBox(nullptr, "Failed to initialize Direct3D", "Error", MB_OK);
+		MessageBox(nullptr, L"Failed to initialize Direct3D", L"Error", MB_OK);
 	}
 }
 
@@ -357,7 +358,7 @@ int Engine::Run()
 		// Otherwise, do animation/game stuff.
 		else
 		{
-
+			Update();
 		}
 	}
 
@@ -368,10 +369,10 @@ void Engine::Update() {
 
 }
 
-void Engine::ThrowIfFailed(HRESULT hr)
-{
-	if (FAILED(hr))
-	{
-		throw std::runtime_error("A Direct3D operation failed with code: " + std::to_string(hr));
-	}
-}
+//void Engine::ThrowIfFailed(HRESULT hr)
+//{
+//	if (FAILED(hr))
+//	{
+//		throw std::runtime_error("A Direct3D operation failed with code: " + std::to_string(hr));
+//	}
+//}

@@ -7,6 +7,7 @@
 #include <wrl.h>
 #include <vector>
 #include <DirectXMath.h>
+#include "d3dUtil.h"
 
 using namespace Microsoft::WRL;
 
