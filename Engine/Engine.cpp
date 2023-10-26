@@ -368,11 +368,3 @@ int Engine::Run()
 void Engine::Update() {
 
 }
-
-//void Engine::ThrowIfFailed(HRESULT hr)
-//{
-//	if (FAILED(hr))
-//	{
-//		throw std::runtime_error("A Direct3D operation failed with code: " + std::to_string(hr));
-//	}
-//}

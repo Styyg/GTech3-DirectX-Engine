@@ -38,9 +38,6 @@ public:
     D3D12_CPU_DESCRIPTOR_HANDLE CurrentBackBufferView()const;
     D3D12_CPU_DESCRIPTOR_HANDLE DepthStencilView()const;
 
-    // Utils
-    void ThrowIfFailed(HRESULT hr);
-
 private:
     HINSTANCE mhInst = nullptr;
     HWND mhWnd = nullptr;
