@@ -95,6 +95,7 @@
     <ClCompile Include="MathHelper.cpp" />
     <ClCompile Include="Input.cpp" />
     <ClCompile Include="GameTimer.cpp" />
+    <ClCompile Include="ShaderManager.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="d3dUtil.h" />
@@ -104,6 +105,14 @@
     <ClInclude Include="MathHelper.h" />
     <ClInclude Include="Input.h" />
     <ClInclude Include="GameTimer.h" />
+    <ClInclude Include="ShaderManager.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="Shaders\Shader.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
+      <FileType>Document</FileType>
+    </Text>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
