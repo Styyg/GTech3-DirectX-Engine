@@ -27,6 +27,8 @@ public:
     void SwapChain();
     void CreateRtvAndDsvDescriptorHeaps();
     void RenderTargetView();
+    void DescribeDepthStencilBuffer();
+    void SetupGraphicsPipeline();
 
     ID3D12Resource* CurrentBackBuffer()const;
     D3D12_CPU_DESCRIPTOR_HANDLE CurrentBackBufferView()const;
@@ -45,6 +47,8 @@ private:
     UINT mDsvDescriptorSize;
     UINT mCbvSrvUavDescriptorSize;
 
+    static const int mSwapChainBufferCount = 2;
+
     ComPtr<ID3D12Fence> mFence;
     ComPtr<ID3D12CommandAllocator> mCommandAllocator;
     ComPtr<ID3D12CommandQueue> mCommandQueue;
@@ -54,13 +58,15 @@ private:
     ComPtr<IDXGIFactory4> mDxgiFactory;
     ComPtr<ID3D12DescriptorHeap> mRtvHeap;
     ComPtr<ID3D12DescriptorHeap> mDsvHeap;	
+    ComPtr<ID3D12Resource> mSwapChainBuffer[mSwapChainBufferCount];
+    ComPtr<ID3D12Resource> mDepthStencilBuffer;
 
     D3D12_FEATURE_DATA_MULTISAMPLE_QUALITY_LEVELS msQualityLevels;
 
+    D3D12_VIEWPORT mViewport;
+    D3D12_RECT mScissorRect;
+
     int mClientWidth = 800;
     int mClientHeight = 600;
-
     int mCurrentBackBuffer = 0;
-    static const int mSwapChainBufferCount = 2;
-    ComPtr<ID3D12Resource> mSwapChainBuffer[mSwapChainBufferCount];
 };
