@@ -287,6 +287,16 @@ void Engine::BuildInputLayout()
 	};
 }
 
+void Engine::RootSignature()
+{
+
+}
+
+void Engine::DescriptorTable()
+{
+
+}
+
 bool Engine::InitMainWindow()
 {
 	const auto pClassName = L"GameWnd";

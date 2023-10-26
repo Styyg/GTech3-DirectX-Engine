@@ -33,6 +33,8 @@ public:
     void DescribeDepthStencilBuffer();
     void SetupGraphicsPipeline();
     void BuildInputLayout();
+    void RootSignature();
+    void DescriptorTable();
 
     ID3D12Resource* CurrentBackBuffer()const;
     D3D12_CPU_DESCRIPTOR_HANDLE CurrentBackBufferView()const;
