@@ -5,6 +5,9 @@
 #include <D3Dcompiler.h>
 #include <dxgi1_4.h>
 #include <wrl.h>
+#include <vector>
+#include <DirectXMath.h>
+#include "d3dUtil.h"
 
 using namespace Microsoft::WRL;
 
@@ -29,13 +32,11 @@ public:
     void RenderTargetView();
     void DescribeDepthStencilBuffer();
     void SetupGraphicsPipeline();
+    void BuildInputLayout();
 
     ID3D12Resource* CurrentBackBuffer()const;
     D3D12_CPU_DESCRIPTOR_HANDLE CurrentBackBufferView()const;
     D3D12_CPU_DESCRIPTOR_HANDLE DepthStencilView()const;
-
-    // Utils
-    void ThrowIfFailed(HRESULT hr);
 
 private:
     HINSTANCE mhInst = nullptr;
@@ -62,6 +63,8 @@ private:
     ComPtr<ID3D12Resource> mDepthStencilBuffer;
 
     D3D12_FEATURE_DATA_MULTISAMPLE_QUALITY_LEVELS msQualityLevels;
+
+    std::vector<D3D12_INPUT_ELEMENT_DESC> mInputLayoutDesc;
 
     D3D12_VIEWPORT mViewport;
     D3D12_RECT mScissorRect;
