@@ -3,47 +3,20 @@
 
 using namespace DirectX;
 
-LRESULT CALLBACK WindowProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
-{
-	switch (msg)
-	{
-	case WM_DESTROY:
-	case WM_CLOSE:
-		PostQuitMessage(0);
-		break;
-	case WM_KEYDOWN:
-		if (wParam == 'F')
-		{
-			SetWindowText(hWnd, L"Ta mere");
-		}
-		break;
-	case WM_KEYUP:
-		if (wParam == 'F')
-		{
-			SetWindowText(hWnd, L"Game Window");
-		}
-		break;
-	case WM_LBUTTONDOWN:
-		const POINTS pt = MAKEPOINTS(lParam);
-		std::wstringstream oss;
-		oss << "(" << pt.x << "," << pt.y << ")";
-		SetWindowText(hWnd, oss.str().c_str());
-		break;
-	}
-
-	return DefWindowProc(hWnd, msg, wParam, lParam);
-}
-
-
 struct Vertex
 {
 	XMFLOAT3 Pos;
 	XMFLOAT4 Color;
+}; 
+
+struct ObjectConstants
+{
+	DirectX::XMFLOAT4X4 WorldViewProj = MathHelper::Identity4x4();
 };
 
-Engine::Engine(HINSTANCE hInstance) : mhInst(hInstance)
+Engine::Engine(HWND hWnd) : mHWnd(hWnd)
 {
-	InitMainWindow();
+	//InitMainWindow();
 	InitD3D();
 	SynchroProcess();
 	SetMSAA();
@@ -101,12 +74,12 @@ void Engine::SwapChain()
 	
 	ZeroMemory(&sd, sizeof(sd));
 	sd.BufferCount = mSwapChainBufferCount;
-	sd.BufferDesc.Width = mClientWidth;
-	sd.BufferDesc.Height = mClientHeight;
+	sd.BufferDesc.Width = GetClientWidth();
+	sd.BufferDesc.Height = GetClientHeight();
 	sd.BufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
 	sd.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
 	sd.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;
-	sd.OutputWindow = mhWnd;
+	sd.OutputWindow = mHWnd;
 	sd.SampleDesc.Count = 1;
 	sd.SampleDesc.Quality = 0;
 	sd.Windowed = true;
@@ -156,8 +129,8 @@ void Engine::DescribeDepthStencilBuffer()
 
 	depthStencilDesc.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
 	depthStencilDesc.Alignment = 0;
-	depthStencilDesc.Width = mClientWidth;
-	depthStencilDesc.Height = mClientHeight;
+	depthStencilDesc.Width = GetClientWidth();
+	depthStencilDesc.Height = GetClientHeight();
 	depthStencilDesc.DepthOrArraySize = 1;
 	depthStencilDesc.MipLevels = 1;
 	// 24-bit depth, 8-bit stencil
@@ -198,8 +171,8 @@ void Engine::SetupGraphicsPipeline()
 {
 	mViewport.TopLeftX = 0.0f;
 	mViewport.TopLeftY = 0.0f;
-	mViewport.Width = static_cast<float>(mClientWidth);
-	mViewport.Height = static_cast<float>(mClientHeight);
+	mViewport.Width = static_cast<float>(GetClientWidth());
+	mViewport.Height = static_cast<float>(GetClientHeight());
 	mViewport.MinDepth = 0.0f;
 	mViewport.MaxDepth = 1.0f;
 
@@ -207,8 +180,8 @@ void Engine::SetupGraphicsPipeline()
 
 	mScissorRect.left = 0;
 	mScissorRect.top = 0;
-	mScissorRect.right = mClientWidth / 2;
-	mScissorRect.bottom = mClientHeight / 2;
+	mScissorRect.right = GetClientWidth() / 2;
+	mScissorRect.bottom = GetClientHeight() / 2;
 
 	mCommandList->RSSetScissorRects(1, &mScissorRect);
 }
@@ -288,43 +261,23 @@ void Engine::BuildInputLayout()
 	};
 }
 
-bool Engine::InitMainWindow()
+void Engine::BuildConstantBuffers()
 {
-	const auto pClassName = L"GameWnd";
-	// register window class
-	WNDCLASSEX wc = { 0 };
-	wc.cbSize = sizeof(wc);
-	wc.style = CS_OWNDC;
-	wc.lpfnWndProc = WindowProc;
-	wc.cbClsExtra = 0;
-	wc.cbWndExtra = 0;
-	wc.hInstance = mhInst;
-	wc.hIcon = nullptr;
-	wc.hCursor = nullptr;
-	wc.hbrBackground = nullptr;
-	wc.lpszMenuName = nullptr;
-	wc.lpszClassName = pClassName;
-	wc.hIconSm = nullptr;
+	//UINT elementByteSize = d3dUtil::CalcConstantBufferByteSize(sizeof(ObjectConstants));
 
-	if (!RegisterClassEx(&wc))
-	{
-		MessageBox(0, L"RegisterClass Failed.", 0, 0);
-		return false;
-	}
+	//ComPtr<ID3D12Resource> mUploadCBuffer;
+}
 
-	// create window instance
-	mhWnd = CreateWindowEx(0, pClassName, L"Game Window", WS_CAPTION | WS_MINIMIZEBOX | WS_SYSMENU, 200, 200, mClientWidth, mClientHeight, nullptr, nullptr, mhInst, nullptr);
-	if (!mhWnd)
-	{
-		MessageBox(0, L"CreateWindow Failed.", 0, 0);
-		return false;
-	}
+LONG Engine::GetClientWidth() {
+	RECT rect;
+	GetWindowRect(mHWnd, &rect);
+	return rect.right - rect.left;
+}
 
-	// show the damn window
-	ShowWindow(mhWnd, SW_SHOW);
-	//UpdateWindow(mhWnd);
-
-	return true;
+LONG Engine::GetClientHeight() {
+	RECT rect;
+	GetWindowRect(mHWnd, &rect);
+	return rect.bottom - rect.top;
 }
 
 void Engine::InitD3D()
@@ -341,28 +294,6 @@ void Engine::InitD3D()
 	{
 		MessageBox(nullptr, L"Failed to initialize Direct3D", L"Error", MB_OK);
 	}
-}
-
-int Engine::Run()
-{
-	MSG msg = { 0 };
-
-	while (msg.message != WM_QUIT)
-	{
-		// If there are Window messages then process them.
-		if (PeekMessage(&msg, 0, 0, 0, PM_REMOVE))
-		{
-			TranslateMessage(&msg);
-			DispatchMessage(&msg);
-		}
-		// Otherwise, do animation/game stuff.
-		else
-		{
-			Update();
-		}
-	}
-
-	return (int)msg.wParam;;
 }
 
 void Engine::Update() {
