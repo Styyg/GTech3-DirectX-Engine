@@ -11,13 +11,13 @@ LRESULT CALLBACK WindowProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 	case WM_KEYDOWN:
 		if (wParam == 'F')
 		{
-			SetWindowText(hWnd, "Ta m�re");
+			SetWindowText(hWnd, "Ta mere");
 		}
 		break;
 	case WM_KEYUP:
 		if (wParam == 'F')
 		{
-			SetWindowText(hWnd, "Une fenetre");
+			SetWindowText(hWnd, "Game Window");
 		}
 		break;
 	case WM_LBUTTONDOWN:
