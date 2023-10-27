@@ -53,6 +53,7 @@ Engine::Engine(HINSTANCE hInstance) : mhInst(hInstance)
 	CreateRtvAndDsvDescriptorHeaps();
 	DescribeDepthStencilBuffer();
 	BuildInputLayout();
+	RootSignature();
 }
 
 Engine::~Engine()
@@ -299,6 +300,9 @@ void Engine::BuildInputLayout()
 
 void Engine::RootSignature()
 {
+	ComPtr<ID3DBlob> vsCubeByteCode = shaderManager.CallStack().vsCubeByteCode;
+	ComPtr<ID3DBlob> psCubeByteCode = shaderManager.CallStack().psCubeByteCode;
+
 	CD3DX12_ROOT_PARAMETER slotRootParameter[1];
 
 	slotRootParameter[0].InitAsConstantBufferView(0);
@@ -312,11 +316,6 @@ void Engine::RootSignature()
 	HRESULT hr = D3D12SerializeRootSignature(&rootSigDesc, D3D_ROOT_SIGNATURE_VERSION_1, serializedRootSig.GetAddressOf(), errorBlob.GetAddressOf());
 
 	ThrowIfFailed(mD3DDevice->CreateRootSignature(0, serializedRootSig->GetBufferPointer(), serializedRootSig->GetBufferSize(), IID_PPV_ARGS(&mRootSignature)));
-}
-
-void Engine::DescriptorTable()
-{
-
 }
 
 bool Engine::InitMainWindow()

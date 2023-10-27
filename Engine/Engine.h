@@ -9,6 +9,8 @@
 #include <DirectXMath.h>
 #include "d3dUtil.h"
 
+#include "ShaderManager.h"
+
 using namespace Microsoft::WRL;
 using namespace std;
 
@@ -35,13 +37,14 @@ public:
     void SetupGraphicsPipeline();
     void BuildInputLayout();
     void RootSignature();
-    void DescriptorTable();
 
     ID3D12Resource* CurrentBackBuffer()const;
     D3D12_CPU_DESCRIPTOR_HANDLE CurrentBackBufferView()const;
     D3D12_CPU_DESCRIPTOR_HANDLE DepthStencilView()const;
 
 private:
+    ShaderManager shaderManager;
+    
     HINSTANCE mhInst = nullptr;
     HWND mhWnd = nullptr;
 

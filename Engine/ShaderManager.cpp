@@ -2,62 +2,27 @@
 
 ShaderManager::ShaderManager()
 {
-    mVertexShaderBlob = nullptr;
-
-    InitShaders();
+   
 }
 
 ShaderManager::~ShaderManager()
 {
-    if (mVertexShaderBlob) mVertexShaderBlob->Release();
+
 }
 
-void ShaderManager::InitShaders()
-{
-    // Cube Shader
-    shaderStruct cubeShader{};
+ByteCode ShaderManager::CallStack()
+{  
+    ByteCode cubeByteCode;
 
-    cubeShader.path = L"Shaders/cube_shader.hlsl";
-    cubeShader.vsVersion = "vs_5_0";
-    cubeShader.psVersion = "ps_5_0";
-    cubeShader.vsEntryPoint = "VS";
-    cubeShader.psEntryPoint = "PS";
+    cubeByteCode.vsCubeByteCode = CompileShader(L"C:/Users/lprieu/Documents/GitHub/GTech3-DirectX-Engine/Engine/Shaders/cube_shader.hlsl", "VS", "vs_5_0");
+    cubeByteCode.psCubeByteCode = CompileShader(L"C:/Users/lprieu/Documents/GitHub/GTech3-DirectX-Engine/Engine/Shaders/cube_shader.hlsl", "PS", "ps_5_0");
 
-    cubeShader.shaderBlob = &mVertexShaderBlob;
-
-    CompileShader(cubeShader.path, cubeShader.vsVersion, cubeShader.vsEntryPoint, cubeShader.shaderBlob);
-    CompileShader(cubeShader.path, cubeShader.psVersion, cubeShader.psEntryPoint, cubeShader.shaderBlob);
-
-    // Sphere Shader
-
-    // ....
+    return cubeByteCode;
 }
 
-void ShaderManager::CompileShader(LPCWSTR path, LPCSTR shaderVersion, LPCSTR entryPoint, ID3DBlob** shaderBlob)
+ComPtr<ID3DBlob> ShaderManager::CompileShader(wstring shaderFile, string entryPoint, string target)
 {
-    ID3DBlob* errorBlob = nullptr;
-    HRESULT hr = D3DCompileFromFile(
-        path,
-        nullptr,
-        nullptr,
-        entryPoint,
-        shaderVersion,
-        0,
-        0,
-        shaderBlob,
-        &errorBlob
-    );
+    ComPtr<ID3DBlob> vertexShaderByteCode = d3dUtil::CompileShader(shaderFile, nullptr, entryPoint, target);
 
-    if (FAILED(hr))
-    {
-        if (errorBlob)
-        {
-            MessageBoxA(nullptr, (char*)errorBlob->GetBufferPointer(), "Shader Compilation Error", MB_OK);
-            errorBlob->Release();
-        }
-        else
-        {
-            MessageBox(nullptr, L"Failed to compile shader.", L"Error", MB_OK);
-        }
-    }
+    return vertexShaderByteCode;
 }

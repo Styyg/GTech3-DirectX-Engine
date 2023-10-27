@@ -1,14 +1,13 @@
 #pragma once
 
-#include <d3dcompiler.h>
+#include "d3dUtil.h"
 
-struct shaderStruct {
-	LPCWSTR path;
-	LPCSTR vsVersion;
-	LPCSTR psVersion;
-	LPCSTR vsEntryPoint;
-	LPCSTR psEntryPoint;
-	ID3DBlob** shaderBlob;
+using namespace std;
+using namespace Microsoft::WRL;
+
+struct ByteCode {
+	ComPtr<ID3DBlob> vsCubeByteCode;
+	ComPtr<ID3DBlob> psCubeByteCode;
 };
 
 class ShaderManager
@@ -17,9 +16,11 @@ public:
 	ShaderManager();
 	~ShaderManager();
 
-	void InitShaders();
-	void CompileShader(LPCWSTR path, LPCSTR shaderVersion, LPCSTR entryPoint, ID3DBlob** shaderBlob);
+	ByteCode CallStack();
 
+	ComPtr<ID3DBlob> CompileShader(wstring shaderFile, string entryPoint, string target);
+
+	ByteCode cubeByteCode;
 private:
-	ID3DBlob* mVertexShaderBlob;
+	ComPtr<ID3DBlob> test;
 };
