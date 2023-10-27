@@ -27,6 +27,9 @@ Engine::Engine(HWND hWnd) : mHWnd(hWnd)
 	CreateRtvAndDsvDescriptorHeaps();
 	DescribeDepthStencilBuffer();
 	BuildInputLayout();
+	BuildConstantBuffers();
+	BuildTriangleGeometry();
+	//BuildPSO();
 }
 
 Engine::~Engine()
@@ -254,7 +257,7 @@ D3D12_CPU_DESCRIPTOR_HANDLE Engine::DepthStencilView()const
 
 void Engine::BuildInputLayout()
 {
-	mInputLayoutDesc =
+	mInputLayout =
 	{
 		{"POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0},
 		{"COLOR", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, 12, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0}
@@ -268,13 +271,92 @@ void Engine::BuildConstantBuffers()
 	//ComPtr<ID3D12Resource> mUploadCBuffer;
 }
 
-LONG Engine::GetClientWidth() {
+void Engine::BuildTriangleGeometry()
+{
+	std::array<Vertex, 3> vertices =
+	{
+		Vertex({ XMFLOAT3(-1.0f, -1.0f, 0.0f), XMFLOAT4(Colors::Red) }),
+		Vertex({ XMFLOAT3(+0.0f, +1.0f, 0.0f), XMFLOAT4(Colors::Green) }),
+		Vertex({ XMFLOAT3(+1.0f, -1.0f, 0.0f), XMFLOAT4(Colors::Blue) })
+	};
+
+	std::array<std::uint16_t, 6> indices =
+	{
+		// front face
+		0, 1, 2,
+		// back face
+		0, 2, 1,
+	};
+
+	const UINT vbByteSize = (UINT)vertices.size() * sizeof(Vertex);
+	const UINT ibByteSize = (UINT)indices.size() * sizeof(std::uint16_t);
+
+	mTriangleGeo = std::make_unique<MeshGeometry>();
+	mTriangleGeo->Name = "triGeo";
+
+	ThrowIfFailed(D3DCreateBlob(vbByteSize, &mTriangleGeo->VertexBufferCPU));
+	CopyMemory(mTriangleGeo->VertexBufferCPU->GetBufferPointer(), vertices.data(), vbByteSize);
+
+	ThrowIfFailed(D3DCreateBlob(ibByteSize, &mTriangleGeo->IndexBufferCPU));
+	CopyMemory(mTriangleGeo->IndexBufferCPU->GetBufferPointer(), indices.data(), ibByteSize);
+
+	mTriangleGeo->VertexBufferGPU = d3dUtil::CreateDefaultBuffer(mD3DDevice.Get(),
+		mCommandList.Get(), vertices.data(), vbByteSize, mTriangleGeo->VertexBufferUploader);
+
+	mTriangleGeo->IndexBufferGPU = d3dUtil::CreateDefaultBuffer(mD3DDevice.Get(),
+		mCommandList.Get(), indices.data(), ibByteSize, mTriangleGeo->IndexBufferUploader);
+
+	mTriangleGeo->VertexByteStride = sizeof(Vertex);
+	mTriangleGeo->VertexBufferByteSize = vbByteSize;
+	mTriangleGeo->IndexFormat = DXGI_FORMAT_R16_UINT;
+	mTriangleGeo->IndexBufferByteSize = ibByteSize;
+
+	SubmeshGeometry submesh;
+	submesh.IndexCount = (UINT)indices.size();
+	submesh.StartIndexLocation = 0;
+	submesh.BaseVertexLocation = 0;
+
+	mTriangleGeo->DrawArgs["triangle"] = submesh;
+}
+
+void Engine::BuildPSO()
+{
+	D3D12_GRAPHICS_PIPELINE_STATE_DESC psoDesc;
+	ZeroMemory(&psoDesc, sizeof(D3D12_GRAPHICS_PIPELINE_STATE_DESC));
+	psoDesc.InputLayout = { mInputLayout.data(), (UINT)mInputLayout.size() };
+	psoDesc.pRootSignature = mRootSignature.Get();
+	psoDesc.VS =
+	{
+		reinterpret_cast<BYTE*>(mVsByteCode->GetBufferPointer()),
+		mVsByteCode->GetBufferSize()
+	};
+	psoDesc.PS =
+	{
+		reinterpret_cast<BYTE*>(mPsByteCode->GetBufferPointer()),
+		mPsByteCode->GetBufferSize()
+	};
+	psoDesc.RasterizerState = CD3DX12_RASTERIZER_DESC(D3D12_DEFAULT);
+	psoDesc.BlendState = CD3DX12_BLEND_DESC(D3D12_DEFAULT);
+	psoDesc.DepthStencilState = CD3DX12_DEPTH_STENCIL_DESC(D3D12_DEFAULT);
+	psoDesc.SampleMask = UINT_MAX;
+	psoDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
+	psoDesc.NumRenderTargets = 1;
+	psoDesc.RTVFormats[0] = mBackBufferFormat;
+	psoDesc.SampleDesc.Count = m4xMsaaState ? 4 : 1;
+	psoDesc.SampleDesc.Quality = m4xMsaaState ? (m4xMsaaQuality - 1) : 0;
+	psoDesc.DSVFormat = mDepthStencilFormat;
+	ThrowIfFailed(mD3DDevice->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(&mPSO)));
+}
+
+LONG Engine::GetClientWidth() 
+{
 	RECT rect;
 	GetWindowRect(mHWnd, &rect);
 	return rect.right - rect.left;
 }
 
-LONG Engine::GetClientHeight() {
+LONG Engine::GetClientHeight() 
+{
 	RECT rect;
 	GetWindowRect(mHWnd, &rect);
 	return rect.bottom - rect.top;
