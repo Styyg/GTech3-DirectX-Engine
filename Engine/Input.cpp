@@ -1,4 +1,7 @@
 #include "Input.h"
+#include <DirectXMath.h>
+
+using namespace DirectX;
 
 
 Input::Input()
@@ -59,20 +62,15 @@ KeyState Input::GetKeyState(int keycode)
     return keyStates[keycode];
 }
 
-
-//void Input::OnMouseDown(WPARAM btnState, int x, int y)
-//{
-//    mLastMousePos.x = x;
-//    mLastMousePos.y = y;
-//
-//    SetCapture(mhMainWnd);
-//}
-
-//void Input::OnMouseUp(WPARAM btnState, int x, int y)
-//{
-//    ReleaseCapture();
-//}
-
+POINT Input::CaptureMousePosition(HWND hwnd, int mouseX, int mouseY)
+{
+    POINT cursorPos;
+    GetCursorPos(&cursorPos);
+    ScreenToClient(hwnd, &cursorPos);
+    mouseX = cursorPos.x;
+    mouseY = cursorPos.y;  
+    return cursorPos;
+}
 //void Input::OnMouseMove(WPARAM btnState, int x, int y)
 //{
 //    if ((btnState & MK_LBUTTON) != 0)

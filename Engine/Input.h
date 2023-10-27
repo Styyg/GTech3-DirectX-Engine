@@ -10,6 +10,11 @@ enum KeyState
 	PUSH
 };
 
+struct MousePosition {
+	int x;
+	int y;
+};
+
 class Input
 {
 
@@ -18,11 +23,10 @@ public:
 	~Input();
 	void Update();
 	KeyState GetKeyState(int);
+	POINT CaptureMousePosition(HWND hwnd, int mouseX, int mouseY);
 protected:
 	// Convenience overrides for handling mouse input.
-	//virtual void OnMouseDown(WPARAM btnState, int x, int y) { }
-	//virtual void OnMouseUp(WPARAM btnState, int x, int y) { }
-	//virtual void OnMouseMove(WPARAM btnState, int x, int y) { }
+	//virtual void CaptureMousePosition(HWND hwnd,int mouseX, int mouseY);
 	//HWND      mhMainWnd = nullptr; // main window handle
 
 

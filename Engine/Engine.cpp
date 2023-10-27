@@ -1,4 +1,5 @@
 #include "Engine.h"
+#include "Input.h"
 #include <sstream>
 
 using namespace DirectX;
@@ -296,6 +297,11 @@ void Engine::InitD3D()
 	}
 }
 
-void Engine::Update() {
-
+void Engine::Update()
+{
+	Input test;
+	POINT p = test.CaptureMousePosition(mHWnd,0,0);
+	std::wstring str = std::to_wstring(p.x) + L'\n' + std::to_wstring(p.y) + L"\n\n";
+	OutputDebugString(str.c_str());
+	Sleep(10);
 }
