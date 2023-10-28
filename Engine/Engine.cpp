@@ -284,14 +284,11 @@ void Engine::BuildConstantBuffers()
 	cbvDesc.BufferLocation = cbAddress;
 	cbvDesc.SizeInBytes = d3dUtil::CalcConstantBufferByteSize(sizeof(ObjectConstants));
 
-	mD3DDevice->CreateConstantBufferView(
-		&cbvDesc,
-		mCbvHeap->GetCPUDescriptorHandleForHeapStart());
+	mD3DDevice->CreateConstantBufferView(&cbvDesc, mCbvHeap->GetCPUDescriptorHandleForHeapStart());
 }
 
 void Engine::BuildRootSignature()
 {
-
 	CD3DX12_ROOT_PARAMETER slotRootParameter[1];
 
 	slotRootParameter[0].InitAsConstantBufferView(0);

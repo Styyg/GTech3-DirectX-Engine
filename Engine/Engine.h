@@ -10,6 +10,7 @@
 #include <DirectXMath.h>
 #include "d3dUtil.h"
 #include "UploadBuffer.h"
+
 #include "ShaderManager.h"
 
 using namespace Microsoft::WRL;
