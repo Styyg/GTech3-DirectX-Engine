@@ -1,4 +1,5 @@
 #include "Engine.h"
+#include "Input.h"
 #include <sstream>
 
 using namespace DirectX;
@@ -414,6 +415,7 @@ void Engine::InitD3D()
 	}
 }
 
-void Engine::Update() {
-
+void Engine::Update()
+{
+	
 }
