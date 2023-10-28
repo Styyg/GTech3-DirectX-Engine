@@ -233,7 +233,7 @@ void Engine::CreateRtvAndDsvDescriptorHeaps()
 	cbvHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
 	cbvHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
 	cbvHeapDesc.NodeMask = 0;
-	// creation of DSV desc heap
+	// creation of CBV desc heap
 	ThrowIfFailed(mD3DDevice->CreateDescriptorHeap(&cbvHeapDesc,
 		IID_PPV_ARGS(&mCbvHeap)));
 }
