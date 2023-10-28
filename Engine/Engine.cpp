@@ -52,8 +52,8 @@ Engine::Engine(HINSTANCE hInstance) : mhInst(hInstance)
 	SwapChain();
 	CreateRtvAndDsvDescriptorHeaps();
 	DescribeDepthStencilBuffer();
-	BuildInputLayout();
-	RootSignature();
+	BuildShadersAndInputLayout();
+	BuildRootSignature();
 }
 
 Engine::~Engine()
@@ -289,8 +289,12 @@ D3D12_CPU_DESCRIPTOR_HANDLE Engine::DepthStencilView()const
 	return mDsvHeap->GetCPUDescriptorHandleForHeapStart();
 }
 
-void Engine::BuildInputLayout()
+void Engine::BuildShadersAndInputLayout()
 {
+	ByteCode bc = shaderManager.CallStack();
+	mVsByteCode = bc.vsCubeByteCode;
+	mPsByteCode = bc.psCubeByteCode;
+
 	mInputLayoutDesc =
 	{
 		{"POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0},
@@ -298,10 +302,8 @@ void Engine::BuildInputLayout()
 	};
 }
 
-void Engine::RootSignature()
+void Engine::BuildRootSignature()
 {
-	ComPtr<ID3DBlob> vsCubeByteCode = shaderManager.CallStack().vsCubeByteCode;
-	ComPtr<ID3DBlob> psCubeByteCode = shaderManager.CallStack().psCubeByteCode;
 
 	CD3DX12_ROOT_PARAMETER slotRootParameter[1];
 

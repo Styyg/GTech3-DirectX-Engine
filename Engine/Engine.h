@@ -35,8 +35,8 @@ public:
     void RenderTargetView();
     void DescribeDepthStencilBuffer();
     void SetupGraphicsPipeline();
-    void BuildInputLayout();
-    void RootSignature();
+    void BuildShadersAndInputLayout();
+    void BuildRootSignature();
 
     ID3D12Resource* CurrentBackBuffer()const;
     D3D12_CPU_DESCRIPTOR_HANDLE CurrentBackBufferView()const;
@@ -69,6 +69,8 @@ private:
     ComPtr<ID3D12Resource> mDepthStencilBuffer;
     ComPtr<ID3D12RootSignature> mRootSignature;
     ComPtr<ID3D12DescriptorHeap> mCbvHeap;
+    ComPtr<ID3DBlob> mVsByteCode = nullptr;
+    ComPtr<ID3DBlob> mPsByteCode = nullptr;
 
     D3D12_FEATURE_DATA_MULTISAMPLE_QUALITY_LEVELS msQualityLevels;
 
