@@ -297,13 +297,7 @@ void Engine::InitD3D()
 	}
 }
 
-Input test;
-
 void Engine::Update()
 {
-	test.CaptureMousePos(mHWnd);
-	POINT p = test.GetMouseMove();
-	std::wstring str = std::to_wstring(p.x) + L'\n' + std::to_wstring(p.y) + L"\n\n";
-	OutputDebugString(str.c_str());
-	Sleep(10);
+	
 }
