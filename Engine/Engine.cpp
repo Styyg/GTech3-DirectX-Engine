@@ -3,17 +3,6 @@
 
 using namespace DirectX;
 
-struct Vertex
-{
-	XMFLOAT3 Pos;
-	XMFLOAT4 Color;
-}; 
-
-struct ObjectConstants
-{
-	DirectX::XMFLOAT4X4 WorldViewProj = MathHelper::Identity4x4();
-};
-
 Engine::Engine(HWND hWnd) : mHWnd(hWnd)
 {
 	InitD3D();
@@ -24,12 +13,14 @@ Engine::Engine(HWND hWnd) : mHWnd(hWnd)
 	CreateCommandQueue();
 	SwapChain();
 	CreateRtvAndDsvDescriptorHeaps();
+	RenderTargetView();
 	DescribeDepthStencilBuffer();
+	SetupGraphicsPipeline();
 	BuildShadersAndInputLayout();
 	BuildConstantBuffers();
 	BuildRootSignature();
 	BuildTriangleGeometry();
-	//BuildPSO();
+	BuildPSO();
 }
 
 Engine::~Engine()
@@ -237,13 +228,13 @@ void Engine::CreateRtvAndDsvDescriptorHeaps()
 
 	// config of CBV desc heap
 	D3D12_DESCRIPTOR_HEAP_DESC cbvHeapDesc;
-	cbvHeapDesc.NumDescriptors = 10;
+	cbvHeapDesc.NumDescriptors = 1;
 	cbvHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
-	cbvHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
+	cbvHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
 	cbvHeapDesc.NodeMask = 0;
 	// creation of DSV desc heap
-	ThrowIfFailed(mD3DDevice->CreateDescriptorHeap(
-		&cbvHeapDesc, IID_PPV_ARGS(mCbvHeap.GetAddressOf())));
+	ThrowIfFailed(mD3DDevice->CreateDescriptorHeap(&cbvHeapDesc,
+		IID_PPV_ARGS(&mCbvHeap)));
 }
 
 ID3D12Resource* Engine::CurrentBackBuffer()const
@@ -278,6 +269,26 @@ void Engine::BuildShadersAndInputLayout()
 	};
 }
 
+void Engine::BuildConstantBuffers()
+{
+	mObjectCB = std::make_unique<UploadBuffer<ObjectConstants>>(mD3DDevice.Get(), 1, true);
+
+	UINT objCBByteSize = d3dUtil::CalcConstantBufferByteSize(sizeof(ObjectConstants));
+
+	D3D12_GPU_VIRTUAL_ADDRESS cbAddress = mObjectCB->Resource()->GetGPUVirtualAddress();
+	// Offset to the ith object constant buffer in the buffer.
+	int boxCBufIndex = 0;
+	cbAddress += boxCBufIndex * objCBByteSize;
+
+	D3D12_CONSTANT_BUFFER_VIEW_DESC cbvDesc;
+	cbvDesc.BufferLocation = cbAddress;
+	cbvDesc.SizeInBytes = d3dUtil::CalcConstantBufferByteSize(sizeof(ObjectConstants));
+
+	mD3DDevice->CreateConstantBufferView(
+		&cbvDesc,
+		mCbvHeap->GetCPUDescriptorHandleForHeapStart());
+}
+
 void Engine::BuildRootSignature()
 {
 
@@ -294,13 +305,6 @@ void Engine::BuildRootSignature()
 	HRESULT hr = D3D12SerializeRootSignature(&rootSigDesc, D3D_ROOT_SIGNATURE_VERSION_1, serializedRootSig.GetAddressOf(), errorBlob.GetAddressOf());
 
 	ThrowIfFailed(mD3DDevice->CreateRootSignature(0, serializedRootSig->GetBufferPointer(), serializedRootSig->GetBufferSize(), IID_PPV_ARGS(&mRootSignature)));
-}
-
-void Engine::BuildConstantBuffers()
-{
-	//UINT elementByteSize = d3dUtil::CalcConstantBufferByteSize(sizeof(ObjectConstants));
-
-	//ComPtr<ID3D12Resource> mUploadCBuffer;
 }
 
 void Engine::BuildTriangleGeometry()
