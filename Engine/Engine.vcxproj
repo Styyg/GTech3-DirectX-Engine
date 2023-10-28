@@ -95,6 +95,7 @@
     <ClCompile Include="MathHelper.cpp" />
     <ClCompile Include="Input.cpp" />
     <ClCompile Include="GameTimer.cpp" />
+    <ClCompile Include="ShaderManager.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="d3dUtil.h" />
@@ -104,6 +105,12 @@
     <ClInclude Include="MathHelper.h" />
     <ClInclude Include="Input.h" />
     <ClInclude Include="GameTimer.h" />
+    <ClInclude Include="ShaderManager.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="Shaders\cube_shader.hlsl">
+      <FileType>Document</FileType>
+    </Text>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

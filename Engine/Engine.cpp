@@ -16,7 +16,6 @@ struct ObjectConstants
 
 Engine::Engine(HWND hWnd) : mHWnd(hWnd)
 {
-	//InitMainWindow();
 	InitD3D();
 	SynchroProcess();
 	SetMSAA();
@@ -26,8 +25,9 @@ Engine::Engine(HWND hWnd) : mHWnd(hWnd)
 	SwapChain();
 	CreateRtvAndDsvDescriptorHeaps();
 	DescribeDepthStencilBuffer();
-	BuildInputLayout();
+	BuildShadersAndInputLayout();
 	BuildConstantBuffers();
+	BuildRootSignature();
 	BuildTriangleGeometry();
 	//BuildPSO();
 }
@@ -234,6 +234,16 @@ void Engine::CreateRtvAndDsvDescriptorHeaps()
 	// creation of DSV desc heap
 	ThrowIfFailed(mD3DDevice->CreateDescriptorHeap(
 		&dsvHeapDesc, IID_PPV_ARGS(mDsvHeap.GetAddressOf())));
+
+	// config of CBV desc heap
+	D3D12_DESCRIPTOR_HEAP_DESC cbvHeapDesc;
+	cbvHeapDesc.NumDescriptors = 10;
+	cbvHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
+	cbvHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
+	cbvHeapDesc.NodeMask = 0;
+	// creation of DSV desc heap
+	ThrowIfFailed(mD3DDevice->CreateDescriptorHeap(
+		&cbvHeapDesc, IID_PPV_ARGS(mCbvHeap.GetAddressOf())));
 }
 
 ID3D12Resource* Engine::CurrentBackBuffer()const
@@ -255,13 +265,35 @@ D3D12_CPU_DESCRIPTOR_HANDLE Engine::DepthStencilView()const
 	return mDsvHeap->GetCPUDescriptorHandleForHeapStart();
 }
 
-void Engine::BuildInputLayout()
+void Engine::BuildShadersAndInputLayout()
 {
+	ByteCode bc = shaderManager.CallStack();
+	mVsByteCode = bc.vsCubeByteCode;
+	mPsByteCode = bc.psCubeByteCode;
+
 	mInputLayout =
 	{
 		{"POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0},
 		{"COLOR", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, 12, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0}
 	};
+}
+
+void Engine::BuildRootSignature()
+{
+
+	CD3DX12_ROOT_PARAMETER slotRootParameter[1];
+
+	slotRootParameter[0].InitAsConstantBufferView(0);
+
+	// A root signature is an array of root parameters.
+	CD3DX12_ROOT_SIGNATURE_DESC rootSigDesc(1, slotRootParameter, 0, nullptr, D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);
+	// create a root signature with a single slot which points to a
+	// descriptor range consisting of a single constant buffer.
+	ComPtr<ID3DBlob> serializedRootSig = nullptr;
+	ComPtr<ID3DBlob> errorBlob = nullptr;
+	HRESULT hr = D3D12SerializeRootSignature(&rootSigDesc, D3D_ROOT_SIGNATURE_VERSION_1, serializedRootSig.GetAddressOf(), errorBlob.GetAddressOf());
+
+	ThrowIfFailed(mD3DDevice->CreateRootSignature(0, serializedRootSig->GetBufferPointer(), serializedRootSig->GetBufferSize(), IID_PPV_ARGS(&mRootSignature)));
 }
 
 void Engine::BuildConstantBuffers()
