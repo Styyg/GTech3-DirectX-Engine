@@ -23,7 +23,8 @@ public:
 	~Input();
 	void Update();
 	KeyState GetKeyState(int);
-	POINT CaptureMousePosition(HWND hwnd, int mouseX, int mouseY);
+	void CaptureMousePos(HWND hwnd);
+	POINT GetMouseMove();
 protected:
 	// Convenience overrides for handling mouse input.
 	//virtual void CaptureMousePosition(HWND hwnd,int mouseX, int mouseY);
@@ -31,7 +32,9 @@ protected:
 
 
 private:
-	std::unordered_map<int, KeyState> keyStates;
+	std::unordered_map<int, KeyState> mKeyStates;
+	POINT mLastMousePos;
+	POINT mMouseMove;
 	//POINT mLastMousePos;
 	//float mPhi = XM_PIDIV4;
 

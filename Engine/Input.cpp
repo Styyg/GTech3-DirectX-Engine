@@ -6,8 +6,8 @@ using namespace DirectX;
 
 Input::Input()
 {
-    keyStates.emplace(VK_LBUTTON, NONE);
-    keyStates.emplace(VK_RBUTTON, NONE);
+    mKeyStates.emplace(VK_LBUTTON, NONE);
+    mKeyStates.emplace(VK_RBUTTON, NONE);
 }
 
 Input::~Input()
@@ -17,21 +17,21 @@ Input::~Input()
 
 void Input::Update()
 {
-    for (auto it = keyStates.begin(); it != keyStates.end(); it++)
+    for (auto it = mKeyStates.begin(); it != mKeyStates.end(); it++)
     {
         // Si appuyé
         if (GetAsyncKeyState(it->first))
         {
-            switch (keyStates[it->first])
+            switch (mKeyStates[it->first])
             {
             case NONE:
-                keyStates[it->first] = DOWN;
+                mKeyStates[it->first] = DOWN;
                 break;
             case DOWN:
-                keyStates[it->first] = PUSH;
+                mKeyStates[it->first] = PUSH;
                 break;
             case UP:
-                keyStates[it->first] = DOWN;
+                mKeyStates[it->first] = DOWN;
                 break;
             default:
                 break;
@@ -39,16 +39,16 @@ void Input::Update()
         }
         // si pas appuyé
         else {
-            switch (keyStates[it->first])
+            switch (mKeyStates[it->first])
             {
             case PUSH:
-                keyStates[it->first] = UP;
+                mKeyStates[it->first] = UP;
                 break;
             case UP:
-                keyStates[it->first] = NONE;
+                mKeyStates[it->first] = NONE;
                 break;
             case DOWN:
-                keyStates[it->first] = UP;
+                mKeyStates[it->first] = UP;
                 break;
             default:
                 break;
@@ -59,18 +59,24 @@ void Input::Update()
 
 KeyState Input::GetKeyState(int keycode)
 {
-    return keyStates[keycode];
+    return mKeyStates[keycode];
 }
 
-POINT Input::CaptureMousePosition(HWND hwnd, int mouseX, int mouseY)
+void Input::CaptureMousePos(HWND hwnd)
 {
-    POINT cursorPos;
-    GetCursorPos(&cursorPos);
-    ScreenToClient(hwnd, &cursorPos);
-    mouseX = cursorPos.x;
-    mouseY = cursorPos.y;  
-    return cursorPos;
+    POINT mousePos;
+    GetCursorPos(&mousePos);
+    ScreenToClient(hwnd, &mousePos);
+    mMouseMove.x = mousePos.x - mLastMousePos.x;
+    mMouseMove.y = mousePos.y - mLastMousePos.y;
+    mLastMousePos = mousePos;
 }
+
+POINT Input::GetMouseMove()
+{
+    return mMouseMove;
+}
+
 //void Input::OnMouseMove(WPARAM btnState, int x, int y)
 //{
 //    if ((btnState & MK_LBUTTON) != 0)
