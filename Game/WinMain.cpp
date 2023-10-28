@@ -76,24 +76,32 @@ int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 	ShowWindow(hWnd, SW_SHOW);
 	UpdateWindow(hWnd);
 
-	Engine appEngine(hWnd);
-
-	MSG msg = { 0 };
-
-	while (msg.message != WM_QUIT)
+	try
 	{
-		// If there are Window messages then process them.
-		if (PeekMessage(&msg, 0, 0, 0, PM_REMOVE))
-		{
-			TranslateMessage(&msg);
-			DispatchMessage(&msg);
-		}
-		// Otherwise, do animation/game stuff.
-		else
-		{
-			appEngine.Update();
-		}
-	}
+		Engine appEngine(hWnd);
 
-	return (int)msg.wParam;
+		MSG msg = { 0 };
+
+		while (msg.message != WM_QUIT)
+		{
+			// If there are Window messages then process them.
+			if (PeekMessage(&msg, 0, 0, 0, PM_REMOVE))
+			{
+				TranslateMessage(&msg);
+				DispatchMessage(&msg);
+			}
+			// Otherwise, do animation/game stuff.
+			else
+			{
+				appEngine.Update();
+			}
+		}
+
+		return (int)msg.wParam;
+	}
+	catch (DxException& e)
+	{
+		MessageBox(nullptr, e.ToString().c_str(), L"HR Failed", MB_OK);
+		return 0;
+	}
 }
