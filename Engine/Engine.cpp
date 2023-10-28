@@ -3,46 +3,19 @@
 
 using namespace DirectX;
 
-LRESULT CALLBACK WindowProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
-{
-	switch (msg)
-	{
-	case WM_DESTROY:
-	case WM_CLOSE:
-		PostQuitMessage(0);
-		break;
-	case WM_KEYDOWN:
-		if (wParam == 'F')
-		{
-			SetWindowText(hWnd, L"Ta mere");
-		}
-		break;
-	case WM_KEYUP:
-		if (wParam == 'F')
-		{
-			SetWindowText(hWnd, L"Game Window");
-		}
-		break;
-	case WM_LBUTTONDOWN:
-		const POINTS pt = MAKEPOINTS(lParam);
-		std::wstringstream oss;
-		oss << "(" << pt.x << "," << pt.y << ")";
-		SetWindowText(hWnd, oss.str().c_str());
-		break;
-	}
-
-	return DefWindowProc(hWnd, msg, wParam, lParam);
-}
-
 struct Vertex
 {
 	XMFLOAT3 Pos;
 	XMFLOAT4 Color;
+}; 
+
+struct ObjectConstants
+{
+	DirectX::XMFLOAT4X4 WorldViewProj = MathHelper::Identity4x4();
 };
 
-Engine::Engine(HINSTANCE hInstance) : mhInst(hInstance)
+Engine::Engine(HWND hWnd) : mHWnd(hWnd)
 {
-	InitMainWindow();
 	InitD3D();
 	SynchroProcess();
 	SetMSAA();
@@ -53,7 +26,10 @@ Engine::Engine(HINSTANCE hInstance) : mhInst(hInstance)
 	CreateRtvAndDsvDescriptorHeaps();
 	DescribeDepthStencilBuffer();
 	BuildShadersAndInputLayout();
+	BuildConstantBuffers();
 	BuildRootSignature();
+	BuildTriangleGeometry();
+	//BuildPSO();
 }
 
 Engine::~Engine()
@@ -101,12 +77,12 @@ void Engine::SwapChain()
 	
 	ZeroMemory(&sd, sizeof(sd));
 	sd.BufferCount = mSwapChainBufferCount;
-	sd.BufferDesc.Width = mClientWidth;
-	sd.BufferDesc.Height = mClientHeight;
+	sd.BufferDesc.Width = GetClientWidth();
+	sd.BufferDesc.Height = GetClientHeight();
 	sd.BufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
 	sd.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
 	sd.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;
-	sd.OutputWindow = mhWnd;
+	sd.OutputWindow = mHWnd;
 	sd.SampleDesc.Count = 1;
 	sd.SampleDesc.Quality = 0;
 	sd.Windowed = true;
@@ -156,8 +132,8 @@ void Engine::DescribeDepthStencilBuffer()
 
 	depthStencilDesc.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
 	depthStencilDesc.Alignment = 0;
-	depthStencilDesc.Width = mClientWidth;
-	depthStencilDesc.Height = mClientHeight;
+	depthStencilDesc.Width = GetClientWidth();
+	depthStencilDesc.Height = GetClientHeight();
 	depthStencilDesc.DepthOrArraySize = 1;
 	depthStencilDesc.MipLevels = 1;
 	// 24-bit depth, 8-bit stencil
@@ -198,8 +174,8 @@ void Engine::SetupGraphicsPipeline()
 {
 	mViewport.TopLeftX = 0.0f;
 	mViewport.TopLeftY = 0.0f;
-	mViewport.Width = static_cast<float>(mClientWidth);
-	mViewport.Height = static_cast<float>(mClientHeight);
+	mViewport.Width = static_cast<float>(GetClientWidth());
+	mViewport.Height = static_cast<float>(GetClientHeight());
 	mViewport.MinDepth = 0.0f;
 	mViewport.MaxDepth = 1.0f;
 
@@ -207,8 +183,8 @@ void Engine::SetupGraphicsPipeline()
 
 	mScissorRect.left = 0;
 	mScissorRect.top = 0;
-	mScissorRect.right = mClientWidth / 2;
-	mScissorRect.bottom = mClientHeight / 2;
+	mScissorRect.right = GetClientWidth() / 2;
+	mScissorRect.bottom = GetClientHeight() / 2;
 
 	mCommandList->RSSetScissorRects(1, &mScissorRect);
 }
@@ -295,7 +271,7 @@ void Engine::BuildShadersAndInputLayout()
 	mVsByteCode = bc.vsCubeByteCode;
 	mPsByteCode = bc.psCubeByteCode;
 
-	mInputLayoutDesc =
+	mInputLayout =
 	{
 		{"POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0},
 		{"COLOR", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, 12, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0}
@@ -320,43 +296,102 @@ void Engine::BuildRootSignature()
 	ThrowIfFailed(mD3DDevice->CreateRootSignature(0, serializedRootSig->GetBufferPointer(), serializedRootSig->GetBufferSize(), IID_PPV_ARGS(&mRootSignature)));
 }
 
-bool Engine::InitMainWindow()
+void Engine::BuildConstantBuffers()
 {
-	const auto pClassName = L"GameWnd";
-	// register window class
-	WNDCLASSEX wc = { 0 };
-	wc.cbSize = sizeof(wc);
-	wc.style = CS_OWNDC;
-	wc.lpfnWndProc = WindowProc;
-	wc.cbClsExtra = 0;
-	wc.cbWndExtra = 0;
-	wc.hInstance = mhInst;
-	wc.hIcon = nullptr;
-	wc.hCursor = nullptr;
-	wc.hbrBackground = nullptr;
-	wc.lpszMenuName = nullptr;
-	wc.lpszClassName = pClassName;
-	wc.hIconSm = nullptr;
+	//UINT elementByteSize = d3dUtil::CalcConstantBufferByteSize(sizeof(ObjectConstants));
 
-	if (!RegisterClassEx(&wc))
+	//ComPtr<ID3D12Resource> mUploadCBuffer;
+}
+
+void Engine::BuildTriangleGeometry()
+{
+	std::array<Vertex, 3> vertices =
 	{
-		MessageBox(0, L"RegisterClass Failed.", 0, 0);
-		return false;
-	}
+		Vertex({ XMFLOAT3(-1.0f, -1.0f, 0.0f), XMFLOAT4(Colors::Red) }),
+		Vertex({ XMFLOAT3(+0.0f, +1.0f, 0.0f), XMFLOAT4(Colors::Green) }),
+		Vertex({ XMFLOAT3(+1.0f, -1.0f, 0.0f), XMFLOAT4(Colors::Blue) })
+	};
 
-	// create window instance
-	mhWnd = CreateWindowEx(0, pClassName, L"Game Window", WS_CAPTION | WS_MINIMIZEBOX | WS_SYSMENU, 200, 200, mClientWidth, mClientHeight, nullptr, nullptr, mhInst, nullptr);
-	if (!mhWnd)
+	std::array<std::uint16_t, 6> indices =
 	{
-		MessageBox(0, L"CreateWindow Failed.", 0, 0);
-		return false;
-	}
+		// front face
+		0, 1, 2,
+		// back face
+		0, 2, 1,
+	};
 
-	// show the damn window
-	ShowWindow(mhWnd, SW_SHOW);
-	//UpdateWindow(mhWnd);
+	const UINT vbByteSize = (UINT)vertices.size() * sizeof(Vertex);
+	const UINT ibByteSize = (UINT)indices.size() * sizeof(std::uint16_t);
 
-	return true;
+	mTriangleGeo = std::make_unique<MeshGeometry>();
+	mTriangleGeo->Name = "triGeo";
+
+	ThrowIfFailed(D3DCreateBlob(vbByteSize, &mTriangleGeo->VertexBufferCPU));
+	CopyMemory(mTriangleGeo->VertexBufferCPU->GetBufferPointer(), vertices.data(), vbByteSize);
+
+	ThrowIfFailed(D3DCreateBlob(ibByteSize, &mTriangleGeo->IndexBufferCPU));
+	CopyMemory(mTriangleGeo->IndexBufferCPU->GetBufferPointer(), indices.data(), ibByteSize);
+
+	mTriangleGeo->VertexBufferGPU = d3dUtil::CreateDefaultBuffer(mD3DDevice.Get(),
+		mCommandList.Get(), vertices.data(), vbByteSize, mTriangleGeo->VertexBufferUploader);
+
+	mTriangleGeo->IndexBufferGPU = d3dUtil::CreateDefaultBuffer(mD3DDevice.Get(),
+		mCommandList.Get(), indices.data(), ibByteSize, mTriangleGeo->IndexBufferUploader);
+
+	mTriangleGeo->VertexByteStride = sizeof(Vertex);
+	mTriangleGeo->VertexBufferByteSize = vbByteSize;
+	mTriangleGeo->IndexFormat = DXGI_FORMAT_R16_UINT;
+	mTriangleGeo->IndexBufferByteSize = ibByteSize;
+
+	SubmeshGeometry submesh;
+	submesh.IndexCount = (UINT)indices.size();
+	submesh.StartIndexLocation = 0;
+	submesh.BaseVertexLocation = 0;
+
+	mTriangleGeo->DrawArgs["triangle"] = submesh;
+}
+
+void Engine::BuildPSO()
+{
+	D3D12_GRAPHICS_PIPELINE_STATE_DESC psoDesc;
+	ZeroMemory(&psoDesc, sizeof(D3D12_GRAPHICS_PIPELINE_STATE_DESC));
+	psoDesc.InputLayout = { mInputLayout.data(), (UINT)mInputLayout.size() };
+	psoDesc.pRootSignature = mRootSignature.Get();
+	psoDesc.VS =
+	{
+		reinterpret_cast<BYTE*>(mVsByteCode->GetBufferPointer()),
+		mVsByteCode->GetBufferSize()
+	};
+	psoDesc.PS =
+	{
+		reinterpret_cast<BYTE*>(mPsByteCode->GetBufferPointer()),
+		mPsByteCode->GetBufferSize()
+	};
+	psoDesc.RasterizerState = CD3DX12_RASTERIZER_DESC(D3D12_DEFAULT);
+	psoDesc.BlendState = CD3DX12_BLEND_DESC(D3D12_DEFAULT);
+	psoDesc.DepthStencilState = CD3DX12_DEPTH_STENCIL_DESC(D3D12_DEFAULT);
+	psoDesc.SampleMask = UINT_MAX;
+	psoDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
+	psoDesc.NumRenderTargets = 1;
+	psoDesc.RTVFormats[0] = mBackBufferFormat;
+	psoDesc.SampleDesc.Count = m4xMsaaState ? 4 : 1;
+	psoDesc.SampleDesc.Quality = m4xMsaaState ? (m4xMsaaQuality - 1) : 0;
+	psoDesc.DSVFormat = mDepthStencilFormat;
+	ThrowIfFailed(mD3DDevice->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(&mPSO)));
+}
+
+LONG Engine::GetClientWidth() 
+{
+	RECT rect;
+	GetWindowRect(mHWnd, &rect);
+	return rect.right - rect.left;
+}
+
+LONG Engine::GetClientHeight() 
+{
+	RECT rect;
+	GetWindowRect(mHWnd, &rect);
+	return rect.bottom - rect.top;
 }
 
 void Engine::InitD3D()
@@ -373,28 +408,6 @@ void Engine::InitD3D()
 	{
 		MessageBox(nullptr, L"Failed to initialize Direct3D", L"Error", MB_OK);
 	}
-}
-
-int Engine::Run()
-{
-	MSG msg = { 0 };
-
-	while (msg.message != WM_QUIT)
-	{
-		// If there are Window messages then process them.
-		if (PeekMessage(&msg, 0, 0, 0, PM_REMOVE))
-		{
-			TranslateMessage(&msg);
-			DispatchMessage(&msg);
-		}
-		// Otherwise, do animation/game stuff.
-		else
-		{
-			Update();
-		}
-	}
-
-	return (int)msg.wParam;;
 }
 
 void Engine::Update() {

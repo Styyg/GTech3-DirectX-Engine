@@ -1,6 +1,7 @@
 #pragma once
 
 #include <windows.h>
+#include <windef.h>
 #include "d3dx12.h"
 #include <D3Dcompiler.h>
 #include <dxgi1_4.h>
@@ -17,13 +18,11 @@ using namespace std;
 class Engine
 {
 public:
-    Engine(HINSTANCE hInstance);
+    Engine(HWND hWnd);
     virtual ~Engine();
 
-    int Run();
     void Update();
 
-    bool InitMainWindow();
     void InitD3D();
     void SynchroProcess();
     void SetMSAA();
@@ -36,7 +35,13 @@ public:
     void DescribeDepthStencilBuffer();
     void SetupGraphicsPipeline();
     void BuildShadersAndInputLayout();
+    void BuildConstantBuffers();
     void BuildRootSignature();
+    void BuildTriangleGeometry();
+    void BuildPSO();
+
+    LONG GetClientWidth();
+    LONG GetClientHeight();
 
     ID3D12Resource* CurrentBackBuffer()const;
     D3D12_CPU_DESCRIPTOR_HANDLE CurrentBackBufferView()const;
@@ -45,8 +50,12 @@ public:
 private:
     ShaderManager shaderManager;
     
-    HINSTANCE mhInst = nullptr;
-    HWND mhWnd = nullptr;
+    //HINSTANCE mhInst = nullptr;
+    HWND mHWnd = nullptr;
+
+    // Set true to use 4X MSAA (�4.1.8).  The default is false.
+    bool      m4xMsaaState = false;    // 4X MSAA enabled
+    UINT      m4xMsaaQuality = 0;      // quality level of 4X MSAA
 
     UINT64 mFenceValue = 0;
 
@@ -67,19 +76,26 @@ private:
     ComPtr<ID3D12DescriptorHeap> mDsvHeap;	
     ComPtr<ID3D12Resource> mSwapChainBuffer[mSwapChainBufferCount];
     ComPtr<ID3D12Resource> mDepthStencilBuffer;
-    ComPtr<ID3D12RootSignature> mRootSignature;
     ComPtr<ID3D12DescriptorHeap> mCbvHeap;
+    ComPtr<ID3D12PipelineState> mPSO = nullptr;
+    ComPtr<ID3D12RootSignature> mRootSignature = nullptr;
     ComPtr<ID3DBlob> mVsByteCode = nullptr;
     ComPtr<ID3DBlob> mPsByteCode = nullptr;
 
     D3D12_FEATURE_DATA_MULTISAMPLE_QUALITY_LEVELS msQualityLevels;
 
-    vector<D3D12_INPUT_ELEMENT_DESC> mInputLayoutDesc;
+    vector<D3D12_INPUT_ELEMENT_DESC> mInputLayout;
 
     D3D12_VIEWPORT mViewport;
     D3D12_RECT mScissorRect;
 
-    int mClientWidth = 800;
-    int mClientHeight = 600;
+    std::unique_ptr<MeshGeometry> mTriangleGeo = nullptr;
+
+
+    DXGI_FORMAT mBackBufferFormat = DXGI_FORMAT_R8G8B8A8_UNORM;
+    DXGI_FORMAT mDepthStencilFormat = DXGI_FORMAT_D24_UNORM_S8_UINT;
+
+    //int mClientWidth = 800;
+    //int mClientHeight = 600;
     int mCurrentBackBuffer = 0;
 };
