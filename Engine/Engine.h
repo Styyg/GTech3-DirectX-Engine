@@ -9,11 +9,22 @@
 #include <vector>
 #include <DirectXMath.h>
 #include "d3dUtil.h"
-
+#include "UploadBuffer.h"
 #include "ShaderManager.h"
 
 using namespace Microsoft::WRL;
-using namespace std;
+using namespace DirectX;
+
+struct Vertex
+{
+    XMFLOAT3 Pos;
+    XMFLOAT4 Color;
+};
+
+struct ObjectConstants
+{
+    DirectX::XMFLOAT4X4 WorldViewProj = MathHelper::Identity4x4();
+};
 
 class Engine
 {
@@ -65,6 +76,8 @@ private:
 
     static const int mSwapChainBufferCount = 2;
 
+    std::unique_ptr<UploadBuffer<ObjectConstants>> mObjectCB = nullptr;
+
     ComPtr<ID3D12Fence> mFence;
     ComPtr<ID3D12CommandAllocator> mCommandAllocator;
     ComPtr<ID3D12CommandQueue> mCommandQueue;
@@ -73,10 +86,10 @@ private:
     ComPtr<IDXGISwapChain> mSwapChain;
     ComPtr<IDXGIFactory4> mDxgiFactory;
     ComPtr<ID3D12DescriptorHeap> mRtvHeap;
-    ComPtr<ID3D12DescriptorHeap> mDsvHeap;	
+    ComPtr<ID3D12DescriptorHeap> mDsvHeap;
+    ComPtr<ID3D12DescriptorHeap> mCbvHeap;
     ComPtr<ID3D12Resource> mSwapChainBuffer[mSwapChainBufferCount];
     ComPtr<ID3D12Resource> mDepthStencilBuffer;
-    ComPtr<ID3D12DescriptorHeap> mCbvHeap;
     ComPtr<ID3D12PipelineState> mPSO = nullptr;
     ComPtr<ID3D12RootSignature> mRootSignature = nullptr;
     ComPtr<ID3DBlob> mVsByteCode = nullptr;
