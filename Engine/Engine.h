@@ -34,23 +34,25 @@ public:
     virtual ~Engine();
 
     void Update();
+    void Draw();
+    void OnResize();
 
     void InitD3D();
     void SynchroProcess();
     void SetMSAA();
-    void CreateCommandQueue();
-    void CreateCommandList();
-    void CreateCommandAllocator();
-    void SwapChain();
-    void CreateRtvAndDsvDescriptorHeaps();
+    void CreateCommandObjects();
+    void CreateSwapChain();
+    void CreateDescriptorHeaps();
+
     void RenderTargetView();
     void DescribeDepthStencilBuffer();
-    void SetupGraphicsPipeline();
     void BuildShadersAndInputLayout();
     void BuildConstantBuffers();
     void BuildRootSignature();
     void BuildTriangleGeometry();
-    void BuildPSO();
+    void BuildPSO(); 
+    
+    void FlushCommandQueue();
 
     LONG GetClientWidth();
     LONG GetClientHeight();
@@ -62,7 +64,6 @@ public:
 private:
     ShaderManager shaderManager;
     
-    //HINSTANCE mhInst = nullptr;
     HWND mHWnd = nullptr;
 
     // Set true to use 4X MSAA (�4.1.8).  The default is false.
@@ -96,6 +97,8 @@ private:
     ComPtr<ID3DBlob> mVsByteCode = nullptr;
     ComPtr<ID3DBlob> mPsByteCode = nullptr;
 
+    UINT64 mCurrentFence = 0;
+
     D3D12_FEATURE_DATA_MULTISAMPLE_QUALITY_LEVELS msQualityLevels;
 
     vector<D3D12_INPUT_ELEMENT_DESC> mInputLayout;
@@ -105,11 +108,18 @@ private:
 
     std::unique_ptr<MeshGeometry> mTriangleGeo = nullptr;
 
-
     DXGI_FORMAT mBackBufferFormat = DXGI_FORMAT_R8G8B8A8_UNORM;
     DXGI_FORMAT mDepthStencilFormat = DXGI_FORMAT_D24_UNORM_S8_UINT;
 
-    //int mClientWidth = 800;
-    //int mClientHeight = 600;
+    XMFLOAT4X4 mWorld = MathHelper::Identity4x4();
+    XMFLOAT4X4 mView = MathHelper::Identity4x4();
+    XMFLOAT4X4 mProj = MathHelper::Identity4x4();
+
+    float mTheta = 1.5f * XM_PI;
+    float mPhi = XM_PIDIV4;
+    float mRadius = 5.0f;
+
+    int mClientWidth = 800;
+    int mClientHeight = 600;
     int mCurrentBackBuffer = 0;
 };

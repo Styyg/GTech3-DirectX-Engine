@@ -18,18 +18,14 @@ public:
 	~Input();
 	void Update();
 	KeyState GetKeyState(int);
+	void CaptureMousePos(HWND hwnd);
+	POINT GetMouseMove();
 protected:
-	// Convenience overrides for handling mouse input.
-	//virtual void OnMouseDown(WPARAM btnState, int x, int y) { }
-	//virtual void OnMouseUp(WPARAM btnState, int x, int y) { }
-	//virtual void OnMouseMove(WPARAM btnState, int x, int y) { }
-	//HWND      mhMainWnd = nullptr; // main window handle
 
 
 private:
-	std::unordered_map<int, KeyState> keyStates;
-	//POINT mLastMousePos;
-	//float mPhi = XM_PIDIV4;
-
+	std::unordered_map<int, KeyState> mKeyStates;
+	POINT mLastMousePos;
+	POINT mMouseMove;
 };
 
