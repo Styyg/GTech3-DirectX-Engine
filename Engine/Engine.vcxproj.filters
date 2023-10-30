@@ -76,6 +76,8 @@
     <Text Include="Shaders\cube_shader.hlsl" />
   </ItemGroup>
   <ItemGroup>
-    <Text Include="Shaders\cube_shader.hlsl" />
+    <Text Include="Shaders\cube_shader.hlsl">
+      <Filter>Resource Files</Filter>
+    </Text>
   </ItemGroup>
 </Project>

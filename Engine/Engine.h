@@ -10,10 +10,13 @@
 #include <DirectXMath.h>
 #include "d3dUtil.h"
 #include "UploadBuffer.h"
+
 #include "ShaderManager.h"
+#include "Input.h"
 
 using namespace Microsoft::WRL;
 using namespace DirectX;
+using namespace std;
 
 struct Vertex
 {
@@ -23,7 +26,7 @@ struct Vertex
 
 struct ObjectConstants
 {
-    DirectX::XMFLOAT4X4 WorldViewProj = MathHelper::Identity4x4();
+    XMFLOAT4X4 WorldViewProj = MathHelper::Identity4x4();
 };
 
 class Engine
@@ -60,6 +63,11 @@ public:
     D3D12_CPU_DESCRIPTOR_HANDLE CurrentBackBufferView()const;
     D3D12_CPU_DESCRIPTOR_HANDLE DepthStencilView()const;
 
+    void ResetCommandList();
+    void CloseCommandeList();
+    void ExecuteCommandList();
+    void Flush();
+
 private:
     ShaderManager shaderManager;
     
@@ -77,7 +85,7 @@ private:
 
     static const int mSwapChainBufferCount = 2;
 
-    std::unique_ptr<UploadBuffer<ObjectConstants>> mObjectCB = nullptr;
+    unique_ptr<UploadBuffer<ObjectConstants>> mObjectCB = nullptr;
 
     ComPtr<ID3D12Fence> mFence;
     ComPtr<ID3D12CommandAllocator> mCommandAllocator;
@@ -105,7 +113,7 @@ private:
     D3D12_VIEWPORT mViewport;
     D3D12_RECT mScissorRect;
 
-    std::unique_ptr<MeshGeometry> mTriangleGeo = nullptr;
+    unique_ptr<MeshGeometry> mTriangleGeo = nullptr;
 
     DXGI_FORMAT mBackBufferFormat = DXGI_FORMAT_R8G8B8A8_UNORM;
     DXGI_FORMAT mDepthStencilFormat = DXGI_FORMAT_D24_UNORM_S8_UINT;

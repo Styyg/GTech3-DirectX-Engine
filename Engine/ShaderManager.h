@@ -19,8 +19,6 @@ public:
 	ByteCode CallStack();
 
 	ComPtr<ID3DBlob> CompileShader(wstring shaderFile, string entryPoint, string target);
-
-	ByteCode cubeByteCode;
 private:
-	ComPtr<ID3DBlob> test;
+	
 };
