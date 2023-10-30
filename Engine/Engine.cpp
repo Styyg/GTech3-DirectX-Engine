@@ -1,5 +1,4 @@
 #include "Engine.h"
-#include "Input.h"
 #include <sstream>
 
 using namespace DirectX;
@@ -21,16 +20,12 @@ Engine::Engine(HWND hWnd) : mHWnd(hWnd)
 	BuildConstantBuffers();
 	BuildRootSignature();
 
-	// Reset
 	ResetCommandList();
 	BuildTriangleGeometry();
-	//Close
 	CloseCommandeList();
-	//execute
 	ExecuteCommandList();
-	//flush
 	Flush();
-	//free upload buffer
+	// aditionnal free upload buffer
 
 	BuildPSO();
 }
@@ -358,9 +353,9 @@ void Engine::ExecuteCommandList()
 
 void Engine::Flush()
 {
-	mD3DDevice->CreateFence(0, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&mFence));
-	ID3D12CommandList* ppCommandLists[] = { mCommandList.Get() };
-	mCommandQueue->ExecuteCommandLists(_countof(ppCommandLists), ppCommandLists);
+	//mD3DDevice->CreateFence(0, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&mFence));
+	//ID3D12CommandList* ppCommandLists[] = { mCommandList.Get() };
+	//mCommandQueue->ExecuteCommandLists(_countof(ppCommandLists), ppCommandLists);
 
 	mFenceValue++;
 	mCommandQueue->Signal(mFence.Get(), mFenceValue);
@@ -439,9 +434,9 @@ void Engine::BuildTriangleGeometry()
 {
 	std::array<Vertex, 3> vertices =
 	{
-		Vertex({ XMFLOAT3(-1.0f, 0.0f, -1.0f), XMFLOAT4(Colors::Red) }),
-		Vertex({ XMFLOAT3(+0.0f, 0.0f, +1.0f), XMFLOAT4(Colors::Green) }),
-		Vertex({ XMFLOAT3(+1.0f, 0.0f, -1.0f), XMFLOAT4(Colors::Blue) })
+		Vertex({ XMFLOAT3(-1.0f, -1.0f, 0.0f), XMFLOAT4(Colors::Red) }),
+		Vertex({ XMFLOAT3(+0.0f, +1.0f, 0.0f), XMFLOAT4(Colors::Green) }),
+		Vertex({ XMFLOAT3(+1.0f, -1.0f, 0.0f), XMFLOAT4(Colors::Blue) })
 	};
 
 	std::array<std::uint16_t, 6> indices =
@@ -595,7 +590,7 @@ void Engine::Update()
 	XMMATRIX view = XMMatrixLookAtLH(pos, target, up);
 	XMStoreFloat4x4(&mView, view);
 
-	XMMATRIX proj = XMMatrixPerspectiveFovLH(0.25f * MathHelper::Pi, 800/600.0f, 1.0f, 1000.0f);
+	XMMATRIX proj = XMMatrixPerspectiveFovLH(0.25f * MathHelper::Pi, 800/600.0f, 0.5f, 1000.0f);
 
 	XMMATRIX world = XMLoadFloat4x4(&mWorld);
 	XMMATRIX worldViewProj = world * view * proj;

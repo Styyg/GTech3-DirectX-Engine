@@ -12,6 +12,7 @@
 #include "UploadBuffer.h"
 
 #include "ShaderManager.h"
+#include "Input.h"
 
 using namespace Microsoft::WRL;
 using namespace DirectX;
