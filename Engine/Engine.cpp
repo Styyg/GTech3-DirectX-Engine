@@ -337,7 +337,8 @@ D3D12_CPU_DESCRIPTOR_HANDLE Engine::DepthStencilView()const
 
 void Engine::ResetCommandList()
 {
-	mCommandList->Reset(mCommandAllocator.Get(), nullptr);
+	//mCommandList->Reset(mCommandAllocator.Get(), nullptr);
+	mCommandList->Reset(mCommandAllocator.Get(), mPSO.Get());
 }
 
 void Engine::CloseCommandeList()
