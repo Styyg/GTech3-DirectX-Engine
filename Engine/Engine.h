@@ -62,6 +62,11 @@ public:
     D3D12_CPU_DESCRIPTOR_HANDLE CurrentBackBufferView()const;
     D3D12_CPU_DESCRIPTOR_HANDLE DepthStencilView()const;
 
+    void ResetCommandList();
+    void CloseCommandeList();
+    void ExecuteCommandList();
+    void Flush();
+
 private:
     ShaderManager shaderManager;
     

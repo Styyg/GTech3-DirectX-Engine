@@ -21,11 +21,15 @@ Engine::Engine(HWND hWnd) : mHWnd(hWnd)
 	BuildConstantBuffers();
 	BuildRootSignature();
 
-	//reset list
+	// Reset
+	ResetCommandList();
 	BuildTriangleGeometry();
-	//close
+	//Close
+	CloseCommandeList();
 	//execute
+	ExecuteCommandList();
 	//flush
+	Flush();
 	//free upload buffer
 
 	BuildPSO();
@@ -336,6 +340,46 @@ D3D12_CPU_DESCRIPTOR_HANDLE Engine::DepthStencilView()const
 	return mDsvHeap->GetCPUDescriptorHandleForHeapStart();
 }
 
+void Engine::ResetCommandList()
+{
+	mCommandList->Reset(mCommandAllocator.Get(), nullptr);
+}
+
+void Engine::CloseCommandeList()
+{
+	mCommandList->Close();
+}
+
+void Engine::ExecuteCommandList()
+{
+	ID3D12CommandList* cmdLists[] = { mCommandList.Get() };
+	mCommandQueue->ExecuteCommandLists(_countof(cmdLists), cmdLists);
+}
+
+void Engine::Flush()
+{
+	mD3DDevice->CreateFence(0, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&mFence));
+	ID3D12CommandList* ppCommandLists[] = { mCommandList.Get() };
+	mCommandQueue->ExecuteCommandLists(_countof(ppCommandLists), ppCommandLists);
+
+	mFenceValue++;
+	mCommandQueue->Signal(mFence.Get(), mFenceValue);
+
+	if (mFence->GetCompletedValue() < mFenceValue)
+	{
+		HANDLE eventHandle = CreateEvent(nullptr, FALSE, FALSE, nullptr);
+		if (eventHandle == nullptr)
+		{
+			// Handle error
+		}
+
+		// Attendre jusqu'à ce que le fence ait été traversé
+		mFence->SetEventOnCompletion(mFenceValue, eventHandle);
+		WaitForSingleObject(eventHandle, INFINITE);
+		CloseHandle(eventHandle);
+	}
+}
+
 void Engine::BuildShadersAndInputLayout()
 {
 	ByteCode bc = shaderManager.CallStack();
@@ -388,6 +432,8 @@ void Engine::BuildRootSignature()
 
 	ThrowIfFailed(mD3DDevice->CreateRootSignature(0, serializedRootSig->GetBufferPointer(), serializedRootSig->GetBufferSize(), IID_PPV_ARGS(&mRootSignature)));
 }
+
+//
 
 void Engine::BuildTriangleGeometry()
 {
@@ -588,13 +634,10 @@ void Engine::Draw()
 	mCommandList->SetDescriptorHeaps(_countof(descriptorHeaps), descriptorHeaps);
 
 	mCommandList->SetGraphicsRootSignature(mRootSignature.Get());
-
 	mCommandList->IASetVertexBuffers(0, 1, &mTriangleGeo->VertexBufferView());
 	mCommandList->IASetIndexBuffer(&mTriangleGeo->IndexBufferView());
 	mCommandList->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-
 	mCommandList->SetGraphicsRootDescriptorTable(0, mCbvHeap->GetGPUDescriptorHandleForHeapStart());
-
 	mCommandList->DrawIndexedInstanced(mTriangleGeo->DrawArgs["triangle"].IndexCount, 1, 0, 0, 0);
 
 	// Indicate a state transition on the resource usage.
