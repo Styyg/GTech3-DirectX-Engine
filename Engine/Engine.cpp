@@ -353,10 +353,6 @@ void Engine::ExecuteCommandList()
 
 void Engine::Flush()
 {
-	//mD3DDevice->CreateFence(0, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&mFence));
-	//ID3D12CommandList* ppCommandLists[] = { mCommandList.Get() };
-	//mCommandQueue->ExecuteCommandLists(_countof(ppCommandLists), ppCommandLists);
-
 	mFenceValue++;
 	mCommandQueue->Signal(mFence.Get(), mFenceValue);
 
