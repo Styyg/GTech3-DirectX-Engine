@@ -569,29 +569,16 @@ void Engine::FlushCommandQueue()
 
 void Engine::Update()
 {
-	// Convert Spherical to Cartesian coordinates.
-	float x = mRadius * sinf(mPhi) * cosf(mTheta);
-	float z = mRadius * sinf(mPhi) * sinf(mTheta);
-	float y = mRadius * cosf(mPhi);
+	Camera camera;
+	camera.Update();
 
-	x = 0;
-	y = 0;
-	z = -4;
+	XMMATRIX view = camera.GetViewMatrix(0, 0, -4);
+	XMMATRIX proj = camera.GetProjectionMatrix(800, 600);
 
-	// Build the view matrix.
-	XMVECTOR pos = XMVectorSet(x, y, z, 1.0f);
-	XMVECTOR target = XMVectorZero();
-	XMVECTOR up = XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f);
-
-	XMMATRIX view = XMMatrixLookAtLH(pos, target, up);
-	XMStoreFloat4x4(&mView, view);
-
-	XMMATRIX proj = XMMatrixPerspectiveFovLH(0.25f * MathHelper::Pi, 800/600.0f, 0.5f, 1000.0f);
-
+	// Mise à jour de la matrice de vue et de projection dans le shader
 	XMMATRIX world = XMLoadFloat4x4(&mWorld);
 	XMMATRIX worldViewProj = world * view * proj;
 
-	// Update the constant buffer with the latest worldViewProj matrix.
 	ObjectConstants objConstants;
 	XMStoreFloat4x4(&objConstants.WorldViewProj, XMMatrixTranspose(worldViewProj));
 	mObjectCB->CopyData(0, objConstants);
