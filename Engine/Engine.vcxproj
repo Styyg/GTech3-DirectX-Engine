@@ -95,6 +95,7 @@
     <ClCompile Include="MathHelper.cpp" />
     <ClCompile Include="Input.cpp" />
     <ClCompile Include="GameTimer.cpp" />
+    <ClCompile Include="Mesh.cpp" />
     <ClCompile Include="ShaderManager.cpp" />
     <ClCompile Include="Transform.cpp" />
   </ItemGroup>
@@ -106,6 +107,7 @@
     <ClInclude Include="MathHelper.h" />
     <ClInclude Include="Input.h" />
     <ClInclude Include="GameTimer.h" />
+    <ClInclude Include="Mesh.h" />
     <ClInclude Include="ShaderManager.h" />
   </ItemGroup>
   <ItemGroup>

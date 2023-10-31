@@ -39,6 +39,9 @@
     <ClCompile Include="ShaderManager.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Mesh.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="d3dUtil.h">
@@ -71,11 +74,14 @@
     <ClInclude Include="Transform.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Mesh.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <Text Include="Shaders\cube_shader.hlsl" />
-  </ItemGroup>
-  <ItemGroup>
+    <Text Include="Shaders\cube_shader.hlsl">
+      <Filter>Resource Files</Filter>
+    </Text>
     <Text Include="Shaders\cube_shader.hlsl">
       <Filter>Resource Files</Filter>
     </Text>
