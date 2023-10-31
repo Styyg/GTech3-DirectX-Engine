@@ -1,5 +1,4 @@
 #include "Engine.h"
-#include "Input.h"
 #include <sstream>
 
 using namespace DirectX;
@@ -20,7 +19,14 @@ Engine::Engine(HWND hWnd) : mHWnd(hWnd)
 	BuildShadersAndInputLayout();
 	BuildConstantBuffers();
 	BuildRootSignature();
+
+	ResetCommandList();
 	BuildTriangleGeometry();
+	CloseCommandeList();
+	ExecuteCommandList();
+	Flush();
+	// aditionnal free upload buffer
+
 	BuildPSO();
 }
 
@@ -329,6 +335,46 @@ D3D12_CPU_DESCRIPTOR_HANDLE Engine::DepthStencilView()const
 	return mDsvHeap->GetCPUDescriptorHandleForHeapStart();
 }
 
+void Engine::ResetCommandList()
+{
+	mCommandList->Reset(mCommandAllocator.Get(), nullptr);
+}
+
+void Engine::CloseCommandeList()
+{
+	mCommandList->Close();
+}
+
+void Engine::ExecuteCommandList()
+{
+	ID3D12CommandList* cmdLists[] = { mCommandList.Get() };
+	mCommandQueue->ExecuteCommandLists(_countof(cmdLists), cmdLists);
+}
+
+void Engine::Flush()
+{
+	//mD3DDevice->CreateFence(0, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&mFence));
+	//ID3D12CommandList* ppCommandLists[] = { mCommandList.Get() };
+	//mCommandQueue->ExecuteCommandLists(_countof(ppCommandLists), ppCommandLists);
+
+	mFenceValue++;
+	mCommandQueue->Signal(mFence.Get(), mFenceValue);
+
+	if (mFence->GetCompletedValue() < mFenceValue)
+	{
+		HANDLE eventHandle = CreateEvent(nullptr, FALSE, FALSE, nullptr);
+		if (eventHandle == nullptr)
+		{
+			// Handle error
+		}
+
+		// Attendre jusqu'à ce que le fence ait été traversé
+		mFence->SetEventOnCompletion(mFenceValue, eventHandle);
+		WaitForSingleObject(eventHandle, INFINITE);
+		CloseHandle(eventHandle);
+	}
+}
+
 void Engine::BuildShadersAndInputLayout()
 {
 	ByteCode bc = shaderManager.CallStack();
@@ -357,16 +403,19 @@ void Engine::BuildConstantBuffers()
 	cbvDesc.BufferLocation = cbAddress;
 	cbvDesc.SizeInBytes = d3dUtil::CalcConstantBufferByteSize(sizeof(ObjectConstants));
 
-	mD3DDevice->CreateConstantBufferView(
-		&cbvDesc,
-		mCbvHeap->GetCPUDescriptorHandleForHeapStart());
+	mD3DDevice->CreateConstantBufferView(&cbvDesc, mCbvHeap->GetCPUDescriptorHandleForHeapStart());
 }
 
 void Engine::BuildRootSignature()
 {
 	CD3DX12_ROOT_PARAMETER slotRootParameter[1];
 
-	slotRootParameter[0].InitAsConstantBufferView(0);
+	//slotRootParameter[0].InitAsConstantBufferView(0);
+	 
+	// Create a single descriptor table of CBVs.
+	CD3DX12_DESCRIPTOR_RANGE cbvTable; 
+	cbvTable.Init(D3D12_DESCRIPTOR_RANGE_TYPE_CBV, 1, 0);
+	slotRootParameter[0].InitAsDescriptorTable(1, &cbvTable);
 
 	// A root signature is an array of root parameters.
 	CD3DX12_ROOT_SIGNATURE_DESC rootSigDesc(1, slotRootParameter, 0, nullptr, D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);
@@ -378,6 +427,8 @@ void Engine::BuildRootSignature()
 
 	ThrowIfFailed(mD3DDevice->CreateRootSignature(0, serializedRootSig->GetBufferPointer(), serializedRootSig->GetBufferSize(), IID_PPV_ARGS(&mRootSignature)));
 }
+
+//
 
 void Engine::BuildTriangleGeometry()
 {
@@ -402,11 +453,11 @@ void Engine::BuildTriangleGeometry()
 	mTriangleGeo = std::make_unique<MeshGeometry>();
 	mTriangleGeo->Name = "triGeo";
 
-	ThrowIfFailed(D3DCreateBlob(vbByteSize, &mTriangleGeo->VertexBufferCPU));
-	CopyMemory(mTriangleGeo->VertexBufferCPU->GetBufferPointer(), vertices.data(), vbByteSize);
+	//ThrowIfFailed(D3DCreateBlob(vbByteSize, &mTriangleGeo->VertexBufferCPU));
+	//CopyMemory(mTriangleGeo->VertexBufferCPU->GetBufferPointer(), vertices.data(), vbByteSize);
 
-	ThrowIfFailed(D3DCreateBlob(ibByteSize, &mTriangleGeo->IndexBufferCPU));
-	CopyMemory(mTriangleGeo->IndexBufferCPU->GetBufferPointer(), indices.data(), ibByteSize);
+	//ThrowIfFailed(D3DCreateBlob(ibByteSize, &mTriangleGeo->IndexBufferCPU));
+	//CopyMemory(mTriangleGeo->IndexBufferCPU->GetBufferPointer(), indices.data(), ibByteSize);
 
 	mTriangleGeo->VertexBufferGPU = d3dUtil::CreateDefaultBuffer(mD3DDevice.Get(),
 		mCommandList.Get(), vertices.data(), vbByteSize, mTriangleGeo->VertexBufferUploader);
@@ -472,6 +523,15 @@ LONG Engine::GetClientHeight()
 
 void Engine::InitD3D()
 {
+#if defined(DEBUG) || defined(_DEBUG) 
+	// Enable the D3D12 debug layer.
+{
+	ComPtr<ID3D12Debug> debugController;
+	ThrowIfFailed(D3D12GetDebugInterface(IID_PPV_ARGS(&debugController)));
+	debugController->EnableDebugLayer();
+}
+#endif
+
 	// Create Factory
 	ThrowIfFailed(CreateDXGIFactory1(IID_PPV_ARGS(&mDxgiFactory)));
 
@@ -518,6 +578,10 @@ void Engine::Update()
 	float z = mRadius * sinf(mPhi) * sinf(mTheta);
 	float y = mRadius * cosf(mPhi);
 
+	x = 0;
+	y = 0;
+	z = -4;
+
 	// Build the view matrix.
 	XMVECTOR pos = XMVectorSet(x, y, z, 1.0f);
 	XMVECTOR target = XMVectorZero();
@@ -526,8 +590,9 @@ void Engine::Update()
 	XMMATRIX view = XMMatrixLookAtLH(pos, target, up);
 	XMStoreFloat4x4(&mView, view);
 
+	XMMATRIX proj = XMMatrixPerspectiveFovLH(0.25f * MathHelper::Pi, 800/600.0f, 0.5f, 1000.0f);
+
 	XMMATRIX world = XMLoadFloat4x4(&mWorld);
-	XMMATRIX proj = XMLoadFloat4x4(&mProj);
 	XMMATRIX worldViewProj = world * view * proj;
 
 	// Update the constant buffer with the latest worldViewProj matrix.
@@ -544,8 +609,7 @@ void Engine::Draw()
 
 	// A command list can be reset after it has been added to the command queue via ExecuteCommandList.
 	// Reusing the command list reuses memory.
-	//ThrowIfFailed(mCommandList->Reset(mCommandAllocator.Get(), mPSO.Get()));
-	ThrowIfFailed(mCommandList->Reset(mCommandAllocator.Get(), nullptr));
+	ThrowIfFailed(mCommandList->Reset(mCommandAllocator.Get(), mPSO.Get()));
 
 	// Indicate a state transition on the resource usage.
 	mCommandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(CurrentBackBuffer(),
@@ -561,19 +625,15 @@ void Engine::Draw()
 	// Specify the buffers we are going to render to.
 	mCommandList->OMSetRenderTargets(1, &CurrentBackBufferView(), true, &DepthStencilView());
 
-	/*ID3D12DescriptorHeap* descriptorHeaps[] = {mCbvHeap.Get()};
+	ID3D12DescriptorHeap* descriptorHeaps[] = {mCbvHeap.Get()};
 	mCommandList->SetDescriptorHeaps(_countof(descriptorHeaps), descriptorHeaps);
 
 	mCommandList->SetGraphicsRootSignature(mRootSignature.Get());
-
 	mCommandList->IASetVertexBuffers(0, 1, &mTriangleGeo->VertexBufferView());
 	mCommandList->IASetIndexBuffer(&mTriangleGeo->IndexBufferView());
 	mCommandList->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-
 	mCommandList->SetGraphicsRootDescriptorTable(0, mCbvHeap->GetGPUDescriptorHandleForHeapStart());
-
-	mCommandList->DrawIndexedInstanced(
-		mTriangleGeo->DrawArgs["triangle"].IndexCount, 1, 0, 0, 0);*/
+	mCommandList->DrawIndexedInstanced(mTriangleGeo->DrawArgs["triangle"].IndexCount, 1, 0, 0, 0);
 
 	// Indicate a state transition on the resource usage.
 	mCommandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(CurrentBackBuffer(),
@@ -586,12 +646,12 @@ void Engine::Draw()
 	ID3D12CommandList* cmdsLists[] = { mCommandList.Get() };
 	mCommandQueue->ExecuteCommandLists(_countof(cmdsLists), cmdsLists);
 
-	// swap the back and front buffers
-	ThrowIfFailed(mSwapChain->Present(0, 0));
-	mCurrentBackBuffer = (mCurrentBackBuffer + 1) % mSwapChainBufferCount;
-
 	// Wait until frame commands are complete.  This waiting is inefficient and is
 	// done for simplicity.  Later we will show how to organize our rendering code
 	// so we do not have to wait per frame.
 	FlushCommandQueue();
+
+	// swap the back and front buffers
+	ThrowIfFailed(mSwapChain->Present(0, 0));
+	mCurrentBackBuffer = (mCurrentBackBuffer + 1) % mSwapChainBufferCount;
 }
