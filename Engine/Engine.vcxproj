@@ -102,6 +102,7 @@
     <ClCompile Include="GameTimer.cpp" />
     <ClCompile Include="Mesh.cpp" />
     <ClCompile Include="Rigidbody.cpp" />
+    <ClCompile Include="GeometryGenerator.cpp" />
     <ClCompile Include="ShaderManager.cpp" />
     <ClCompile Include="Transform.cpp" />
   </ItemGroup>
@@ -120,6 +121,7 @@
     <ClInclude Include="GameTimer.h" />
     <ClInclude Include="Mesh.h" />
     <ClInclude Include="Rigidbody.h" />
+    <ClInclude Include="GeometryGenerator.h" />
     <ClInclude Include="ShaderManager.h" />
   </ItemGroup>
   <ItemGroup>

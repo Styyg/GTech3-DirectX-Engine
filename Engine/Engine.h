@@ -14,6 +14,7 @@
 #include "Input.h"
 #include "Camera.h"
 #include "ShaderManager.h"
+#include "GeometryGenerator.h"
 
 using namespace Microsoft::WRL;
 using namespace DirectX;

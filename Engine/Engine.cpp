@@ -341,7 +341,8 @@ D3D12_CPU_DESCRIPTOR_HANDLE Engine::DepthStencilView()const
 
 void Engine::ResetCommandList()
 {
-	mCommandList->Reset(mCommandAllocator.Get(), nullptr);
+	//mCommandList->Reset(mCommandAllocator.Get(), nullptr);
+	mCommandList->Reset(mCommandAllocator.Get(), mPSO.Get());
 }
 
 void Engine::CloseCommandeList()
@@ -449,7 +450,11 @@ void Engine::BuildRootSignature()
 
 void Engine::BuildTriangleGeometry()
 {
-	std::array<Vertex, 3> vertices =
+	GeometryGenerator geoGen;
+	GeometryGenerator::Mesh triangle = geoGen.CreateTriangle3D(1.0f, 1.0f, 1.5f);
+	GeometryGenerator::Mesh triangle2 = geoGen.CreateTriangle3D(0.5f, 5.0f, 1.5f);
+
+	/*std::array<Vertex, 3> vertices =
 	{
 		Vertex({ XMFLOAT3(-1.0f, -1.0f, 0.0f), XMFLOAT4(Colors::Red) }),
 		Vertex({ XMFLOAT3(+0.0f, +1.0f, 0.0f), XMFLOAT4(Colors::Green) }),
@@ -462,10 +467,10 @@ void Engine::BuildTriangleGeometry()
 		0, 1, 2,
 		// back face
 		0, 2, 1,
-	};
+	};*/
 
-	const UINT vbByteSize = (UINT)vertices.size() * sizeof(Vertex);
-	const UINT ibByteSize = (UINT)indices.size() * sizeof(std::uint16_t);
+	const UINT vbByteSize = (UINT)triangle.vertices.size() * sizeof(Vertex);
+	const UINT ibByteSize = (UINT)triangle.indices.size() * sizeof(std::uint16_t);
 
 	mTriangleGeo = std::make_unique<MeshGeometry>();
 	mTriangleGeo->Name = "triGeo";
@@ -477,10 +482,10 @@ void Engine::BuildTriangleGeometry()
 	//CopyMemory(mTriangleGeo->IndexBufferCPU->GetBufferPointer(), indices.data(), ibByteSize);
 
 	mTriangleGeo->VertexBufferGPU = d3dUtil::CreateDefaultBuffer(mD3DDevice.Get(),
-		mCommandList.Get(), vertices.data(), vbByteSize, mTriangleGeo->VertexBufferUploader);
+		mCommandList.Get(), triangle.vertices.data(), vbByteSize, mTriangleGeo->VertexBufferUploader);
 
 	mTriangleGeo->IndexBufferGPU = d3dUtil::CreateDefaultBuffer(mD3DDevice.Get(),
-		mCommandList.Get(), indices.data(), ibByteSize, mTriangleGeo->IndexBufferUploader);
+		mCommandList.Get(), triangle.indices.data(), ibByteSize, mTriangleGeo->IndexBufferUploader);
 
 	mTriangleGeo->VertexByteStride = sizeof(Vertex);
 	mTriangleGeo->VertexBufferByteSize = vbByteSize;
@@ -488,7 +493,7 @@ void Engine::BuildTriangleGeometry()
 	mTriangleGeo->IndexBufferByteSize = ibByteSize;
 
 	SubmeshGeometry submesh;
-	submesh.IndexCount = (UINT)indices.size();
+	submesh.IndexCount = (UINT)triangle.indices.size();
 	submesh.StartIndexLocation = 0;
 	submesh.BaseVertexLocation = 0;
 

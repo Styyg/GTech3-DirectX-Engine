@@ -46,6 +46,9 @@
     <ClCompile Include="Transform.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="GeometryGenerator.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Camera.h">
@@ -99,6 +102,9 @@
     <ClInclude Include="UploadBuffer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="GeometryGenerator.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Header Files">
@@ -107,13 +113,13 @@
     <Filter Include="Source Files">
       <UniqueIdentifier>{65fc8fe3-84e1-4dcf-82b7-832dcbb8fc37}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Ressource Files">
+    <Filter Include="Resource Files">
       <UniqueIdentifier>{815c714b-9def-41fc-8a95-32a3e2d999d8}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
     <Text Include="Shaders\cube_shader.hlsl">
-      <Filter>Ressource Files</Filter>
+      <Filter>Resource Files</Filter>
     </Text>
   </ItemGroup>
 </Project>
