@@ -11,9 +11,9 @@
 #include "d3dUtil.h"
 #include "UploadBuffer.h"
 
-#include "ShaderManager.h"
 #include "Input.h"
 #include "Camera.h"
+#include "ShaderManager.h"
 
 using namespace Microsoft::WRL;
 using namespace DirectX;
@@ -68,6 +68,9 @@ public:
     void CloseCommandeList();
     void ExecuteCommandList();
     void Flush();
+
+    // Manager
+    void DrawAllGameObjects();
 
 private:
     ShaderManager shaderManager;

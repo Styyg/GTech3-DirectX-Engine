@@ -1,6 +1,8 @@
 #include "Engine.h"
 #include <sstream>
 
+#include "Manager.h"
+
 using namespace DirectX;
 
 Engine::Engine(HWND hWnd) : mHWnd(hWnd)
@@ -28,6 +30,8 @@ Engine::Engine(HWND hWnd) : mHWnd(hWnd)
 	// aditionnal free upload buffer
 
 	BuildPSO();
+
+	DrawAllGameObjects();
 }
 
 Engine::~Engine()
@@ -368,6 +372,23 @@ void Engine::Flush()
 		mFence->SetEventOnCompletion(mFenceValue, eventHandle);
 		WaitForSingleObject(eventHandle, INFINITE);
 		CloseHandle(eventHandle);
+	}
+}
+
+void Engine::DrawAllGameObjects()
+{
+	Manager* mgr = Manager::GetInstance();
+
+	GameObject obj1;
+	GameObject obj2;
+
+	mgr->AddGameObject(obj1);
+	mgr->AddGameObject(obj2);
+
+	list<GameObject>& gameObjects = mgr->GetGameObjects();
+
+	for (GameObject& obj : gameObjects) {
+		//
 	}
 }
 
