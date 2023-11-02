@@ -434,35 +434,13 @@ void Engine::BuildRootSignature()
 void Engine::BuildTriangleGeometry()
 {
 	GeometryGenerator geoGen;
-	GeometryGenerator::Mesh triangle = geoGen.CreateTriangle3D(1.0f, 1.0f, 1.5f);
-	GeometryGenerator::Mesh triangle2 = geoGen.CreateTriangle3D(0.5f, 5.0f, 1.5f);
-
-	/*std::array<Vertex, 3> vertices =
-	{
-		Vertex({ XMFLOAT3(-1.0f, -1.0f, 0.0f), XMFLOAT4(Colors::Red) }),
-		Vertex({ XMFLOAT3(+0.0f, +1.0f, 0.0f), XMFLOAT4(Colors::Green) }),
-		Vertex({ XMFLOAT3(+1.0f, -1.0f, 0.0f), XMFLOAT4(Colors::Blue) })
-	};
-
-	std::array<std::uint16_t, 6> indices =
-	{
-		// front face
-		0, 1, 2,
-		// back face
-		0, 2, 1,
-	};*/
+	Mesh triangle = geoGen.CreateTriangle3D(1.0f, 1.0f, 1.5f);
 
 	const UINT vbByteSize = (UINT)triangle.vertices.size() * sizeof(Vertex);
 	const UINT ibByteSize = (UINT)triangle.indices.size() * sizeof(std::uint16_t);
 
 	mTriangleGeo = std::make_unique<MeshGeometry>();
 	mTriangleGeo->Name = "triGeo";
-
-	//ThrowIfFailed(D3DCreateBlob(vbByteSize, &mTriangleGeo->VertexBufferCPU));
-	//CopyMemory(mTriangleGeo->VertexBufferCPU->GetBufferPointer(), vertices.data(), vbByteSize);
-
-	//ThrowIfFailed(D3DCreateBlob(ibByteSize, &mTriangleGeo->IndexBufferCPU));
-	//CopyMemory(mTriangleGeo->IndexBufferCPU->GetBufferPointer(), indices.data(), ibByteSize);
 
 	mTriangleGeo->VertexBufferGPU = d3dUtil::CreateDefaultBuffer(mD3DDevice.Get(),
 		mCommandList.Get(), triangle.vertices.data(), vbByteSize, mTriangleGeo->VertexBufferUploader);

@@ -10,7 +10,7 @@ GeometryGenerator::~GeometryGenerator()
 
 }
 
-GeometryGenerator::Mesh GeometryGenerator::CreateTriangle3D(float width, float height, float depth)
+Mesh GeometryGenerator::CreateTriangle3D(float width, float height, float depth)
 {
 	Mesh mesh;
 
@@ -52,30 +52,3 @@ GeometryGenerator::Mesh GeometryGenerator::CreateTriangle3D(float width, float h
 
 	return mesh;
 }
-
-/*void GeometryGenerator::CreateMesh()
-{
-	const UINT vbByteSize = (UINT)mVertices.size() * sizeof(Vertex);
-	const UINT ibByteSize = (UINT)mIndices.size() * sizeof(uint16_t);
-
-	mMeshGeo = std::make_unique<MeshGeometry>();
-	mMeshGeo->Name = "triGeo";
-
-	//mMeshGeo->VertexBufferGPU = d3dUtil::CreateDefaultBuffer(mDevicePtr->Get(),
-	//	mCommandListPtr->Get(), mVertices.data(), vbByteSize, mMeshGeo->VertexBufferUploader);
-
-	//mMeshGeo->IndexBufferGPU = d3dUtil::CreateDefaultBuffer(mDevicePtr->Get(),
-	//	mCommandListPtr->Get(), mIndices.data(), ibByteSize, mMeshGeo->IndexBufferUploader);
-
-	mMeshGeo->VertexByteStride = sizeof(Vertex);
-	mMeshGeo->VertexBufferByteSize = vbByteSize;
-	mMeshGeo->IndexFormat = DXGI_FORMAT_R16_UINT;
-	mMeshGeo->IndexBufferByteSize = ibByteSize;
-
-	SubmeshGeometry submesh;
-	submesh.IndexCount = (UINT)mIndices.size();
-	submesh.StartIndexLocation = 0;
-	submesh.BaseVertexLocation = 0;
-
-	mMeshGeo->DrawArgs["triangle"] = submesh;
-}*/
