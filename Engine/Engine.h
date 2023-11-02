@@ -13,6 +13,7 @@
 
 #include "ShaderManager.h"
 #include "Input.h"
+#include "GeometryGenerator.h"
 
 using namespace Microsoft::WRL;
 using namespace DirectX;
