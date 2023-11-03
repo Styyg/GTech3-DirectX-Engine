@@ -16,6 +16,7 @@ public:
 	~GeometryGenerator();
 
 	Mesh CreateTriangle3D(float width, float height, float depth);
+	Mesh CreateCube(float width, float height, float depth);
 
 private:
 	ComPtr<ID3D12Resource> VertexBufferUploader = nullptr;

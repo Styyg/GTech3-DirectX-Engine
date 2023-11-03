@@ -434,7 +434,7 @@ void Engine::BuildRootSignature()
 void Engine::BuildTriangleGeometry()
 {
 	GeometryGenerator geoGen;
-	Mesh triangle = geoGen.CreateTriangle3D(1.0f, 1.0f, 1.5f);
+	Mesh triangle = geoGen.CreateCube(1.0f, 1.0f, 1.0f);
 
 	const UINT vbByteSize = (UINT)triangle.vertices.size() * sizeof(Vertex);
 	const UINT ibByteSize = (UINT)triangle.indices.size() * sizeof(std::uint16_t);
@@ -561,9 +561,38 @@ void Engine::Update()
 	float z = mRadius * sinf(mPhi) * sinf(mTheta);
 	float y = mRadius * cosf(mPhi);
 
-	x = 0;
-	y = -4;
-	z = -4;
+	input.Update();
+
+	if (input.GetKeyState('Z'))
+		mPhi += .01f;
+	
+	if (input.GetKeyState('S'))
+		mPhi -= .01f;
+
+	if (input.GetKeyState('Q'))
+		mTheta += .01f;
+
+	if (input.GetKeyState('D'))
+		mTheta -= .01f;
+
+	//input.CaptureMousePos(mHWnd);
+	//POINT p = input.GetMouseMove();
+
+	//if (p.x != 0 || p.y != 0)
+	//{
+	//	// Make each pixel correspond to a quarter of a degree.
+	//	float dx = XMConvertToRadians(0.25f * static_cast<float>(x - p.x));
+	//	float dy = XMConvertToRadians(0.25f * static_cast<float>(y - p.y));
+
+	//	// Update angles based on input to orbit camera around box.
+	//	mTheta += dx;
+	//	mPhi += dy;
+
+	//	// Restrict the angle mPhi.
+	//	mPhi = MathHelper::Clamp(mPhi, 0.1f, MathHelper::Pi - 0.1f);
+	//}
+
+	//z = -4;
 
 	// Build the view matrix.
 	XMVECTOR pos = XMVectorSet(x, y, z, 1.0f);
