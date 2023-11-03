@@ -21,4 +21,3 @@ private:
 	Transform mTransform;
 	vector<Component>mCmps;
 };
-

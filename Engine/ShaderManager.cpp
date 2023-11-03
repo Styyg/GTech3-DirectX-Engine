@@ -1,28 +1,26 @@
 #include "ShaderManager.h"
 
-ShaderManager::ShaderManager()
-{
-   
+ShaderManager::ShaderManager() {}
+
+ShaderManager::~ShaderManager() {
+    mShaders.clear();
 }
 
-ShaderManager::~ShaderManager()
-{
-
+Shader& ShaderManager::AddShader(const wstring& shaderName, const wstring& shaderFile, const string& entryPoint, const string& target) {
+    auto shader = make_unique<Shader>(shaderFile, entryPoint, target);
+    auto& ref = *shader;
+    mShaders[shaderName] = move(shader);
+    return ref;
 }
 
-ByteCode ShaderManager::CallStack()
-{  
-    ByteCode cubeByteCode;
-
-    cubeByteCode.vsCubeByteCode = CompileShader(L"../Engine/Shaders/cube_shader.hlsl", "VS", "vs_5_0");
-    cubeByteCode.psCubeByteCode = CompileShader(L"../Engine/Shaders/cube_shader.hlsl", "PS", "ps_5_0");
-
-    return cubeByteCode;
+Shader* ShaderManager::GetShader(const wstring& shaderName) {
+    auto it = mShaders.find(shaderName);
+    if (it != mShaders.end()) {
+        return it->second.get();
+    }
+    return nullptr;
 }
 
-ComPtr<ID3DBlob> ShaderManager::CompileShader(wstring shaderFile, string entryPoint, string target)
-{
-    ComPtr<ID3DBlob> vertexShaderByteCode = d3dUtil::CompileShader(shaderFile, nullptr, entryPoint, target);
-
-    return vertexShaderByteCode;
+void ShaderManager::RemoveShader(const wstring& shaderName) {
+    mShaders.erase(shaderName);
 }

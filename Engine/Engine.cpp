@@ -381,23 +381,31 @@ void Engine::DrawAllGameObjects()
 	Manager* mgr = Manager::GetInstance();
 
 	GameObject obj1;
-	GameObject obj2;
+	//GameObject obj2;
 
 	mgr->AddGameObject(obj1);
-	mgr->AddGameObject(obj2);
+	//mgr->AddGameObject(obj2);
 
 	list<GameObject>& gameObjects = mgr->GetGameObjects();
 
 	for (GameObject& obj : gameObjects) {
 		//
+		mCommandList->SetPipelineState(mPSO.Get());
+		mCommandList->SetGraphicsRootSignature(mRootSignature.Get());
+		mCommandList->IASetVertexBuffers(0, 1, &mTriangleGeo->VertexBufferView());
+		mCommandList->IASetIndexBuffer(&mTriangleGeo->IndexBufferView());
+		mCommandList->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+		mCommandList->SetGraphicsRootDescriptorTable(0, mCbvHeap->GetGPUDescriptorHandleForHeapStart());
+		mCommandList->DrawIndexedInstanced(mTriangleGeo->DrawArgs["triangle"].IndexCount, 1, 0, 0, 0);
 	}
 }
 
 void Engine::BuildShadersAndInputLayout()
 {
-	ByteCode bc = shaderManager.CallStack();
-	mVsByteCode = bc.vsCubeByteCode;
-	mPsByteCode = bc.psCubeByteCode;
+	//ComPtr<ID3DBlob> vertexShaderByteCode = vertexShader->GetShaderByteCode();
+
+	mVsByteCode;
+	mPsByteCode;
 
 	mInputLayout =
 	{
@@ -618,7 +626,7 @@ void Engine::Draw()
 
 	// A command list can be reset after it has been added to the command queue via ExecuteCommandList.
 	// Reusing the command list reuses memory.
-	ThrowIfFailed(mCommandList->Reset(mCommandAllocator.Get(), mPSO.Get()));
+	ThrowIfFailed(mCommandList->Reset(mCommandAllocator.Get(), nullptr));
 
 	// Indicate a state transition on the resource usage.
 	mCommandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(CurrentBackBuffer(),
@@ -637,13 +645,10 @@ void Engine::Draw()
 	ID3D12DescriptorHeap* descriptorHeaps[] = {mCbvHeap.Get()};
 	mCommandList->SetDescriptorHeaps(_countof(descriptorHeaps), descriptorHeaps);
 
-	mCommandList->SetGraphicsRootSignature(mRootSignature.Get());
-	mCommandList->IASetVertexBuffers(0, 1, &mTriangleGeo->VertexBufferView());
-	mCommandList->IASetIndexBuffer(&mTriangleGeo->IndexBufferView());
-	mCommandList->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-	mCommandList->SetGraphicsRootDescriptorTable(0, mCbvHeap->GetGPUDescriptorHandleForHeapStart());
-	mCommandList->DrawIndexedInstanced(mTriangleGeo->DrawArgs["triangle"].IndexCount, 1, 0, 0, 0);
+	DrawAllGameObjects();
 
+
+	
 	// Indicate a state transition on the resource usage.
 	mCommandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(CurrentBackBuffer(),
 		D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PRESENT));
