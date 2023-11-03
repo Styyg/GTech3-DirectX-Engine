@@ -1,8 +1,8 @@
 #include "Component.h"
 
-Component::Component()
+Component::Component(GameObject* gameObject)
 {
-
+    mGameObjectPtr = gameObject;
 }
 
 Component::~Component()

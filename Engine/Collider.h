@@ -1,23 +1,17 @@
 #pragma once
+#include <DirectXMath.h>
+#include "GameObject.h"
 
-struct coordinate {
-	int x;
-	int y;
-	int z;
-};
-
-class Collider
+class Collider : public Component
 {
-	struct coordinate {
-		int x;
-		int y;
-		int z;
-	};
+private:
+	XMFLOAT3 mScale;
+	
 public:
+	XMFLOAT3 mCenter;
+	XMFLOAT3 mRadius;
 	Collider();
 	~Collider();
-private:
-	int mSize;
-	int mCenter;
-};
-
+	float GetDistance(const GameObject& Gameobject2);
+	bool IsColliding(GameObject* mGameObjectPtr, const GameObject& Gameobject2);
+}; 

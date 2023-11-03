@@ -5,12 +5,10 @@
 
 class Component
 {
-private:
-	Mesh mMesh;
-	Collider mCollider;
-	Rigidbody mRigidbody;
+protected:
+	GameObject* mGameObjectPtr;
 public:
-	Component();
+	Component(GameObject* gameObject);
 	~Component();
 };
 

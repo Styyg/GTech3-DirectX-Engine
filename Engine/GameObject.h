@@ -6,15 +6,26 @@
 
 using namespace std;
 
+enum ComponentType
+{
+	COLLIDER,
+	RIGIDBODY,
+	MESH,
+	TRIGGER
+};
+
 class GameObject
 {
 private:
 	string mName;
-	Transform mTransform;
-	vector<Component>mCmps;
+	unordered_map<ComponentType,Component>mCmps;
 public:
+	Transform mTransform;
 	GameObject();
 	~GameObject();
-	void AddComponent(Component component);
+	void AddCollider(Collider collider);
+	void AddRigidbody(Rigidbody rigidbody);
+	void AddMesh(Mesh mesh);
+	//void AddTrigger(Trigger trigger);
 };
 
