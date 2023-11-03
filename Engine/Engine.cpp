@@ -337,7 +337,8 @@ D3D12_CPU_DESCRIPTOR_HANDLE Engine::DepthStencilView()const
 
 void Engine::ResetCommandList()
 {
-	mCommandList->Reset(mCommandAllocator.Get(), nullptr);
+	//mCommandList->Reset(mCommandAllocator.Get(), nullptr);
+	mCommandList->Reset(mCommandAllocator.Get(), mPSO.Get());
 }
 
 void Engine::CloseCommandeList()
@@ -432,38 +433,20 @@ void Engine::BuildRootSignature()
 
 void Engine::BuildTriangleGeometry()
 {
-	std::array<Vertex, 3> vertices =
-	{
-		Vertex({ XMFLOAT3(-1.0f, -1.0f, 0.0f), XMFLOAT4(Colors::Red) }),
-		Vertex({ XMFLOAT3(+0.0f, +1.0f, 0.0f), XMFLOAT4(Colors::Green) }),
-		Vertex({ XMFLOAT3(+1.0f, -1.0f, 0.0f), XMFLOAT4(Colors::Blue) })
-	};
+	GeometryGenerator geoGen;
+	Mesh triangle = geoGen.CreateTriangle3D(1.0f, 1.0f, 1.5f);
 
-	std::array<std::uint16_t, 6> indices =
-	{
-		// front face
-		0, 1, 2,
-		// back face
-		0, 2, 1,
-	};
-
-	const UINT vbByteSize = (UINT)vertices.size() * sizeof(Vertex);
-	const UINT ibByteSize = (UINT)indices.size() * sizeof(std::uint16_t);
+	const UINT vbByteSize = (UINT)triangle.vertices.size() * sizeof(Vertex);
+	const UINT ibByteSize = (UINT)triangle.indices.size() * sizeof(std::uint16_t);
 
 	mTriangleGeo = std::make_unique<MeshGeometry>();
 	mTriangleGeo->Name = "triGeo";
 
-	//ThrowIfFailed(D3DCreateBlob(vbByteSize, &mTriangleGeo->VertexBufferCPU));
-	//CopyMemory(mTriangleGeo->VertexBufferCPU->GetBufferPointer(), vertices.data(), vbByteSize);
-
-	//ThrowIfFailed(D3DCreateBlob(ibByteSize, &mTriangleGeo->IndexBufferCPU));
-	//CopyMemory(mTriangleGeo->IndexBufferCPU->GetBufferPointer(), indices.data(), ibByteSize);
-
 	mTriangleGeo->VertexBufferGPU = d3dUtil::CreateDefaultBuffer(mD3DDevice.Get(),
-		mCommandList.Get(), vertices.data(), vbByteSize, mTriangleGeo->VertexBufferUploader);
+		mCommandList.Get(), triangle.vertices.data(), vbByteSize, mTriangleGeo->VertexBufferUploader);
 
 	mTriangleGeo->IndexBufferGPU = d3dUtil::CreateDefaultBuffer(mD3DDevice.Get(),
-		mCommandList.Get(), indices.data(), ibByteSize, mTriangleGeo->IndexBufferUploader);
+		mCommandList.Get(), triangle.indices.data(), ibByteSize, mTriangleGeo->IndexBufferUploader);
 
 	mTriangleGeo->VertexByteStride = sizeof(Vertex);
 	mTriangleGeo->VertexBufferByteSize = vbByteSize;
@@ -471,7 +454,7 @@ void Engine::BuildTriangleGeometry()
 	mTriangleGeo->IndexBufferByteSize = ibByteSize;
 
 	SubmeshGeometry submesh;
-	submesh.IndexCount = (UINT)indices.size();
+	submesh.IndexCount = (UINT)triangle.indices.size();
 	submesh.StartIndexLocation = 0;
 	submesh.BaseVertexLocation = 0;
 
@@ -579,7 +562,7 @@ void Engine::Update()
 	float y = mRadius * cosf(mPhi);
 
 	x = 0;
-	y = 0;
+	y = -4;
 	z = -4;
 
 	// Build the view matrix.

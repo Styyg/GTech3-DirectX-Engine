@@ -13,16 +13,11 @@
 
 #include "ShaderManager.h"
 #include "Input.h"
+#include "GeometryGenerator.h"
 
 using namespace Microsoft::WRL;
 using namespace DirectX;
 using namespace std;
-
-struct Vertex
-{
-    XMFLOAT3 Pos;
-    XMFLOAT4 Color;
-};
 
 struct ObjectConstants
 {
