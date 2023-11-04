@@ -1,17 +1,20 @@
 #pragma once
 #include <DirectXMath.h>
-#include "GameObject.h"
+//#include "GameObject.h"
+#include "Component.h"
+
+class GameObject;
 
 class Collider : public Component
 {
 private:
-	XMFLOAT3 mScale;
+	DirectX::XMFLOAT3 mScale;
 	
 public:
-	XMFLOAT3 mCenter;
-	XMFLOAT3 mRadius;
-	Collider();
+	DirectX::XMFLOAT3 mCenter;
+	DirectX::XMFLOAT3 mRadius;
+	Collider(GameObject* gameObject);
 	~Collider();
 	float GetDistance(const GameObject& Gameobject2);
-	bool IsColliding(GameObject* mGameObjectPtr, const GameObject& Gameobject2);
+	//bool IsColliding(GameObject* mGameObjectPtr, const GameObject& Gameobject2);
 }; 

@@ -1,26 +1,18 @@
 #pragma once
 
 #include <iostream>
-#include <vector>
-#include "Component.h"
-#include "MeshRenderer.h"
+#include <unordered_map>
 #include "Transform.h"
-
-using namespace std;
-
-enum ComponentType
-{
-	COLLIDER,
-	RIGIDBODY,
-	MESH,
-	TRIGGER
-};
+//#include "Component.h"
+#include "Collider.h"
+#include "Rigidbody.h" 
+#include "Mesh.h" 
 
 class GameObject
 {
 private:
-	string mName;
-	unordered_map<ComponentType,Component>mCmps;
+	std::string mName;
+	std::unordered_map<Component::Type, Component> mCmps;
 public:
 	Transform mTransform;
 	GameObject();
@@ -29,12 +21,6 @@ public:
 	void update();
 	void AddCollider(Collider collider);
 	void AddRigidbody(Rigidbody rigidbody);
-	void AddMesh(Mesh mesh);
+	//void AddMesh(Mesh mesh);
 	//void AddTrigger(Trigger trigger);
-};
-
-private:
-	string mName;
-	Transform mTransform;
-	vector<Component> mCmps;
 };

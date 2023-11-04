@@ -1,4 +1,5 @@
 #include "GameObject.h"
+//#include "Collider.h"
 
 GameObject::GameObject()
 {
@@ -12,21 +13,19 @@ GameObject::~GameObject()
 
 void GameObject::AddCollider(Collider collider)
 {
-	mCmps.emplace(COLLIDER, collider);
+	mCmps.emplace(Component::COLLIDER, collider);
 
 }
 
 void GameObject::AddRigidbody(Rigidbody rigidbody)
 {
-	mCmps.emplace(RIGIDBODY, rigidbody);
-
+	mCmps.emplace(Component::RIGIDBODY, rigidbody);
 }
 
-void GameObject::AddMesh(Mesh mesh)
-{
-	mCmps.emplace(MESH, mesh);
-
-}
+//void GameObject::AddMesh(Mesh mesh)
+//{
+//	mCmps.emplace(Component::MESH, mesh);
+//}
 /*
 void GameObject::AddTrigger(Trigger trigger)
 {

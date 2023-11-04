@@ -1,5 +1,8 @@
 #include "ShaderManager.h"
 
+using namespace std;
+using namespace Microsoft::WRL;
+
 ShaderManager::ShaderManager()
 {
    

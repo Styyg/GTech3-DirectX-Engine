@@ -1,7 +1,9 @@
 #include "Collider.h"
+#include "GameObject.h"
 
+using namespace DirectX;
 
-Collider::Collider()
+Collider::Collider(GameObject* gameObject) : Component(gameObject)
 {
 
 }
@@ -30,9 +32,9 @@ float Collider::GetDistance(const GameObject& Gameobject2)
 	return mDistance;
 }
 
-bool Collider::IsColliding(GameObject* mGameObjectPtr, const GameObject& Gameobject2)
-{
-	//if (mGameObjectPtr.mCmps);
-
-
-}
+//bool Collider::IsColliding(GameObject* mGameObjectPtr, const GameObject& Gameobject2)
+//{
+//	//if (mGameObjectPtr.mCmps);
+//
+//
+//}

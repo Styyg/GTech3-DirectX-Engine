@@ -1,5 +1,11 @@
 #pragma once
-class Rigidbody
+#include "Component.h"
+
+class GameObject;
+
+class Rigidbody : public Component
 {
+public:
+	Rigidbody(GameObject* gameObject);;
 };
 

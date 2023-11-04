@@ -1,7 +1,9 @@
 #include "Engine.h"
 #include <sstream>
 
+using namespace Microsoft::WRL;
 using namespace DirectX;
+using namespace std;
 
 Engine::Engine(HWND hWnd) : mHWnd(hWnd), input(hWnd)
 {

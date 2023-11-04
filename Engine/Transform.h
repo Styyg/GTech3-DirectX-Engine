@@ -1,30 +1,29 @@
 #pragma once
-#include "Engine.h"
 #include <DirectXMath.h>
 
 class Transform
 {
 public:
-    XMFLOAT3 vPosition; // Translation vector for the object
-    XMFLOAT4X4 mPosition; // Transformation matrix for translation
+    DirectX::XMFLOAT3 vPosition; // Translation vector for the object
+    DirectX::XMFLOAT4X4 mPosition; // Transformation matrix for translation
     
-    XMFLOAT3 vScale; // Scale factors along the x, y, and z axes
-    XMFLOAT4X4 mScale; // Transformation matrix for scaling
+    DirectX::XMFLOAT3 vScale; // Scale factors along the x, y, and z axes
+    DirectX::XMFLOAT4X4 mScale; // Transformation matrix for scaling
     
-    XMFLOAT4 qRotation; // Quaternion representing rotation
-    XMFLOAT4X4 mRotation; // Transformation matrix for rotation
+    DirectX::XMFLOAT4 qRotation; // Quaternion representing rotation
+    DirectX::XMFLOAT4X4 mRotation; // Transformation matrix for rotation
     
-    XMFLOAT3 vForward; // Forward vector in local space
-    XMFLOAT3 vRight; // Right vector in local space
-    XMFLOAT3 vUp; // Up vector in local space
+    DirectX::XMFLOAT3 vForward; // Forward vector in local space
+    DirectX::XMFLOAT3 vRight; // Right vector in local space
+    DirectX::XMFLOAT3 vUp; // Up vector in local space
     
-    XMFLOAT4X4 mWorldMatrix; // Combined transformation matrix for the world
+    DirectX::XMFLOAT4X4 mWorldMatrix; // Combined transformation matrix for the world
     
     Transform(); // Constructor for the Transform class
    
 
     void InitializeIdentity();  // Initialize transformation matrices as identity matrices
-    void FromMatrix(XMMATRIX* pMat);  // Decompose and update transformation from a given matrix
+    void FromMatrix(DirectX::XMMATRIX* pMat);  // Decompose and update transformation from a given matrix
 
     void UpdateRotationFromVectors();  // Update rotation from the forward, right, and up vectors
     void UpdateRotationFromQuaternion();  // Not implemented in this code

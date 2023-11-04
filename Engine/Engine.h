@@ -15,13 +15,9 @@
 #include "Input.h"
 #include "GeometryGenerator.h"
 
-using namespace Microsoft::WRL;
-using namespace DirectX;
-using namespace std;
-
 struct ObjectConstants
 {
-    XMFLOAT4X4 WorldViewProj = MathHelper::Identity4x4();
+    DirectX::XMFLOAT4X4 WorldViewProj = MathHelper::Identity4x4();
 };
 
 class Engine
@@ -80,47 +76,48 @@ private:
 
     static const int mSwapChainBufferCount = 2;
 
-    unique_ptr<UploadBuffer<ObjectConstants>> mObjectCB = nullptr;
+    std::unique_ptr<UploadBuffer<ObjectConstants>> mObjectCB = nullptr;
 
-    ComPtr<ID3D12Fence> mFence;
-    ComPtr<ID3D12CommandAllocator> mCommandAllocator;
-    ComPtr<ID3D12CommandQueue> mCommandQueue;
-    ComPtr<ID3D12GraphicsCommandList> mCommandList;
-    ComPtr<ID3D12Device> mD3DDevice;
-    ComPtr<IDXGISwapChain> mSwapChain;
-    ComPtr<IDXGIFactory4> mDxgiFactory;
-    ComPtr<ID3D12DescriptorHeap> mRtvHeap;
-    ComPtr<ID3D12DescriptorHeap> mDsvHeap;
-    ComPtr<ID3D12DescriptorHeap> mCbvHeap;
-    ComPtr<ID3D12Resource> mSwapChainBuffer[mSwapChainBufferCount];
-    ComPtr<ID3D12Resource> mDepthStencilBuffer;
-    ComPtr<ID3D12PipelineState> mPSO = nullptr;
-    ComPtr<ID3D12RootSignature> mRootSignature = nullptr;
-    ComPtr<ID3DBlob> mVsByteCode = nullptr;
-    ComPtr<ID3DBlob> mPsByteCode = nullptr;
+    Microsoft::WRL::ComPtr<ID3D12Fence> mFence;
+    Microsoft::WRL::ComPtr<ID3D12CommandAllocator> mCommandAllocator;
+    Microsoft::WRL::ComPtr<ID3D12CommandQueue> mCommandQueue;
+    Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList> mCommandList;
+    Microsoft::WRL::ComPtr<ID3D12Device> mD3DDevice;
+    Microsoft::WRL::ComPtr<IDXGISwapChain> mSwapChain;
+    Microsoft::WRL::ComPtr<IDXGIFactory4> mDxgiFactory;
+    Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> mRtvHeap;
+    Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> mDsvHeap;
+    Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> mCbvHeap;
+    Microsoft::WRL::ComPtr<ID3D12Resource> mSwapChainBuffer[mSwapChainBufferCount];
+    Microsoft::WRL::ComPtr<ID3D12Resource> mDepthStencilBuffer;
+    Microsoft::WRL::ComPtr<ID3D12PipelineState> mPSO = nullptr;
+    Microsoft::WRL::ComPtr<ID3D12RootSignature> mRootSignature = nullptr;
+    Microsoft::WRL::ComPtr<ID3DBlob> mVsByteCode = nullptr;
+    Microsoft::WRL::ComPtr<ID3DBlob> mPsByteCode = nullptr;
 
     UINT64 mCurrentFence = 0;
 
     D3D12_FEATURE_DATA_MULTISAMPLE_QUALITY_LEVELS msQualityLevels;
 
-    vector<D3D12_INPUT_ELEMENT_DESC> mInputLayout;
+    std::vector<D3D12_INPUT_ELEMENT_DESC> mInputLayout;
 
     D3D12_VIEWPORT mViewport;
     D3D12_RECT mScissorRect;
 
-    unique_ptr<MeshGeometry> mTriangleGeo = nullptr;
+    std::unique_ptr<MeshGeometry> mTriangleGeo = nullptr;
 
     DXGI_FORMAT mBackBufferFormat = DXGI_FORMAT_R8G8B8A8_UNORM;
     DXGI_FORMAT mDepthStencilFormat = DXGI_FORMAT_D24_UNORM_S8_UINT;
 
-    XMFLOAT4X4 mWorld = MathHelper::Identity4x4();
-    XMFLOAT4X4 mView = MathHelper::Identity4x4();
-    XMFLOAT4X4 mProj = MathHelper::Identity4x4();
+    DirectX::XMFLOAT4X4 mWorld = MathHelper::Identity4x4();
+    DirectX::XMFLOAT4X4 mView = MathHelper::Identity4x4();
+    DirectX::XMFLOAT4X4 mProj = MathHelper::Identity4x4();
+
+    float mTheta = 1.5f * DirectX::XM_PI;
+    float mPhi = DirectX::XM_PIDIV4;
+    float mRadius = 5.0f;
 
     Input input;
-    float mTheta = 1.5f * XM_PI;
-    float mPhi = XM_PIDIV4;
-    float mRadius = 5.0f;
 
     int mClientWidth = 800;
     int mClientHeight = 600;
