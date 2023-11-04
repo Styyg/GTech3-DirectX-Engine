@@ -3,7 +3,7 @@
 
 using namespace DirectX;
 
-Engine::Engine(HWND hWnd) : mHWnd(hWnd)
+Engine::Engine(HWND hWnd) : mHWnd(hWnd), input(hWnd)
 {
 	InitD3D();
 	SynchroProcess();
@@ -561,8 +561,8 @@ void Engine::Update()
 	float z = mRadius * sinf(mPhi) * sinf(mTheta);
 	float y = mRadius * cosf(mPhi);
 
+	// temporary inputs to move the camera around the center
 	input.Update();
-
 	if (input.GetKeyState('Z'))
 		mPhi += .01f;
 	
@@ -574,25 +574,6 @@ void Engine::Update()
 
 	if (input.GetKeyState('D'))
 		mTheta -= .01f;
-
-	//input.CaptureMousePos(mHWnd);
-	//POINT p = input.GetMouseMove();
-
-	//if (p.x != 0 || p.y != 0)
-	//{
-	//	// Make each pixel correspond to a quarter of a degree.
-	//	float dx = XMConvertToRadians(0.25f * static_cast<float>(x - p.x));
-	//	float dy = XMConvertToRadians(0.25f * static_cast<float>(y - p.y));
-
-	//	// Update angles based on input to orbit camera around box.
-	//	mTheta += dx;
-	//	mPhi += dy;
-
-	//	// Restrict the angle mPhi.
-	//	mPhi = MathHelper::Clamp(mPhi, 0.1f, MathHelper::Pi - 0.1f);
-	//}
-
-	//z = -4;
 
 	// Build the view matrix.
 	XMVECTOR pos = XMVectorSet(x, y, z, 1.0f);
@@ -622,6 +603,7 @@ void Engine::Draw()
 	// A command list can be reset after it has been added to the command queue via ExecuteCommandList.
 	// Reusing the command list reuses memory.
 	ThrowIfFailed(mCommandList->Reset(mCommandAllocator.Get(), mPSO.Get()));
+	//ThrowIfFailed(mCommandList->Reset(mCommandAllocator.Get(), nullptr));
 
 	// Indicate a state transition on the resource usage.
 	mCommandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(CurrentBackBuffer(),
@@ -640,12 +622,15 @@ void Engine::Draw()
 	ID3D12DescriptorHeap* descriptorHeaps[] = {mCbvHeap.Get()};
 	mCommandList->SetDescriptorHeaps(_countof(descriptorHeaps), descriptorHeaps);
 
+	////////
+	//ThrowIfFailed(mCommandList->Reset(mCommandAllocator.Get(), mPSO.Get()));
 	mCommandList->SetGraphicsRootSignature(mRootSignature.Get());
 	mCommandList->IASetVertexBuffers(0, 1, &mTriangleGeo->VertexBufferView());
 	mCommandList->IASetIndexBuffer(&mTriangleGeo->IndexBufferView());
 	mCommandList->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 	mCommandList->SetGraphicsRootDescriptorTable(0, mCbvHeap->GetGPUDescriptorHandleForHeapStart());
 	mCommandList->DrawIndexedInstanced(mTriangleGeo->DrawArgs["triangle"].IndexCount, 1, 0, 0, 0);
+	////////
 
 	// Indicate a state transition on the resource usage.
 	mCommandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(CurrentBackBuffer(),
