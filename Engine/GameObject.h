@@ -23,6 +23,8 @@ public:
 	Transform mTransform;
 	GameObject();
 	~GameObject();
+	void Render();
+	void update();
 	void AddCollider(Collider collider);
 	void AddRigidbody(Rigidbody rigidbody);
 	void AddMesh(Mesh mesh);

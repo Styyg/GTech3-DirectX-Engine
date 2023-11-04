@@ -33,3 +33,13 @@ void GameObject::AddTrigger(Trigger trigger)
 	mCmps.emplace(TRIGGER, trigger);
 
 }*/
+
+void GameObject::Render()
+{
+
+}
+
+void GameObject::update()
+{
+
+}
