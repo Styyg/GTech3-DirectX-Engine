@@ -3,7 +3,7 @@
 
 using namespace DirectX;
 
-Engine::Engine(HWND hWnd) : mHWnd(hWnd)
+Engine::Engine(HWND hWnd) : mHWnd(hWnd), input(hWnd)
 {
 	InitD3D();
 	SynchroProcess();
@@ -337,7 +337,8 @@ D3D12_CPU_DESCRIPTOR_HANDLE Engine::DepthStencilView()const
 
 void Engine::ResetCommandList()
 {
-	mCommandList->Reset(mCommandAllocator.Get(), nullptr);
+	//mCommandList->Reset(mCommandAllocator.Get(), nullptr);
+	mCommandList->Reset(mCommandAllocator.Get(), mPSO.Get());
 }
 
 void Engine::CloseCommandeList()
@@ -432,38 +433,20 @@ void Engine::BuildRootSignature()
 
 void Engine::BuildTriangleGeometry()
 {
-	std::array<Vertex, 3> vertices =
-	{
-		Vertex({ XMFLOAT3(-1.0f, -1.0f, 0.0f), XMFLOAT4(Colors::Red) }),
-		Vertex({ XMFLOAT3(+0.0f, +1.0f, 0.0f), XMFLOAT4(Colors::Green) }),
-		Vertex({ XMFLOAT3(+1.0f, -1.0f, 0.0f), XMFLOAT4(Colors::Blue) })
-	};
+	GeometryGenerator geoGen;
+	Mesh triangle = geoGen.CreateCube(1.0f, 1.0f, 1.0f);
 
-	std::array<std::uint16_t, 6> indices =
-	{
-		// front face
-		0, 1, 2,
-		// back face
-		0, 2, 1,
-	};
-
-	const UINT vbByteSize = (UINT)vertices.size() * sizeof(Vertex);
-	const UINT ibByteSize = (UINT)indices.size() * sizeof(std::uint16_t);
+	const UINT vbByteSize = (UINT)triangle.vertices.size() * sizeof(Vertex);
+	const UINT ibByteSize = (UINT)triangle.indices.size() * sizeof(std::uint16_t);
 
 	mTriangleGeo = std::make_unique<MeshGeometry>();
 	mTriangleGeo->Name = "triGeo";
 
-	//ThrowIfFailed(D3DCreateBlob(vbByteSize, &mTriangleGeo->VertexBufferCPU));
-	//CopyMemory(mTriangleGeo->VertexBufferCPU->GetBufferPointer(), vertices.data(), vbByteSize);
-
-	//ThrowIfFailed(D3DCreateBlob(ibByteSize, &mTriangleGeo->IndexBufferCPU));
-	//CopyMemory(mTriangleGeo->IndexBufferCPU->GetBufferPointer(), indices.data(), ibByteSize);
-
 	mTriangleGeo->VertexBufferGPU = d3dUtil::CreateDefaultBuffer(mD3DDevice.Get(),
-		mCommandList.Get(), vertices.data(), vbByteSize, mTriangleGeo->VertexBufferUploader);
+		mCommandList.Get(), triangle.vertices.data(), vbByteSize, mTriangleGeo->VertexBufferUploader);
 
 	mTriangleGeo->IndexBufferGPU = d3dUtil::CreateDefaultBuffer(mD3DDevice.Get(),
-		mCommandList.Get(), indices.data(), ibByteSize, mTriangleGeo->IndexBufferUploader);
+		mCommandList.Get(), triangle.indices.data(), ibByteSize, mTriangleGeo->IndexBufferUploader);
 
 	mTriangleGeo->VertexByteStride = sizeof(Vertex);
 	mTriangleGeo->VertexBufferByteSize = vbByteSize;
@@ -471,7 +454,7 @@ void Engine::BuildTriangleGeometry()
 	mTriangleGeo->IndexBufferByteSize = ibByteSize;
 
 	SubmeshGeometry submesh;
-	submesh.IndexCount = (UINT)indices.size();
+	submesh.IndexCount = (UINT)triangle.indices.size();
 	submesh.StartIndexLocation = 0;
 	submesh.BaseVertexLocation = 0;
 
@@ -578,9 +561,19 @@ void Engine::Update()
 	float z = mRadius * sinf(mPhi) * sinf(mTheta);
 	float y = mRadius * cosf(mPhi);
 
-	x = 0;
-	y = 0;
-	z = -4;
+	// temporary inputs to move the camera around the center
+	input.Update();
+	if (input.GetKeyState('Z'))
+		mPhi += .01f;
+	
+	if (input.GetKeyState('S'))
+		mPhi -= .01f;
+
+	if (input.GetKeyState('Q'))
+		mTheta += .01f;
+
+	if (input.GetKeyState('D'))
+		mTheta -= .01f;
 
 	// Build the view matrix.
 	XMVECTOR pos = XMVectorSet(x, y, z, 1.0f);
@@ -610,6 +603,7 @@ void Engine::Draw()
 	// A command list can be reset after it has been added to the command queue via ExecuteCommandList.
 	// Reusing the command list reuses memory.
 	ThrowIfFailed(mCommandList->Reset(mCommandAllocator.Get(), mPSO.Get()));
+	//ThrowIfFailed(mCommandList->Reset(mCommandAllocator.Get(), nullptr));
 
 	// Indicate a state transition on the resource usage.
 	mCommandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(CurrentBackBuffer(),
@@ -628,12 +622,15 @@ void Engine::Draw()
 	ID3D12DescriptorHeap* descriptorHeaps[] = {mCbvHeap.Get()};
 	mCommandList->SetDescriptorHeaps(_countof(descriptorHeaps), descriptorHeaps);
 
+	////////
+	//ThrowIfFailed(mCommandList->Reset(mCommandAllocator.Get(), mPSO.Get()));
 	mCommandList->SetGraphicsRootSignature(mRootSignature.Get());
 	mCommandList->IASetVertexBuffers(0, 1, &mTriangleGeo->VertexBufferView());
 	mCommandList->IASetIndexBuffer(&mTriangleGeo->IndexBufferView());
 	mCommandList->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 	mCommandList->SetGraphicsRootDescriptorTable(0, mCbvHeap->GetGPUDescriptorHandleForHeapStart());
 	mCommandList->DrawIndexedInstanced(mTriangleGeo->DrawArgs["triangle"].IndexCount, 1, 0, 0, 0);
+	////////
 
 	// Indicate a state transition on the resource usage.
 	mCommandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(CurrentBackBuffer(),

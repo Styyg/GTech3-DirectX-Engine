@@ -1,7 +1,9 @@
 #pragma once
+
 #include <iostream>
 #include <vector>
 #include "Component.h"
+#include "MeshRenderer.h"
 #include "Transform.h"
 
 using namespace std;
@@ -31,3 +33,8 @@ public:
 	//void AddTrigger(Trigger trigger);
 };
 
+private:
+	string mName;
+	Transform mTransform;
+	vector<Component> mCmps;
+};

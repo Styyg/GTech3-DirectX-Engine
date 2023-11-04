@@ -2,10 +2,9 @@
 
 Component::Component(GameObject* gameObject)
 {
-    mGameObjectPtr = gameObject;
+	mGameObjectPtr = gameObject;
 }
 
 Component::~Component()
 {
-
 }

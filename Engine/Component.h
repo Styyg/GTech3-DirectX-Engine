@@ -3,6 +3,8 @@
 #include "Collider.h"
 #include "Rigidbody.h"
 
+class GameObject;
+
 class Component
 {
 protected:
@@ -10,5 +12,7 @@ protected:
 public:
 	Component(GameObject* gameObject);
 	~Component();
-};
 
+private:
+	GameObject* mGameObjectPtr;
+};

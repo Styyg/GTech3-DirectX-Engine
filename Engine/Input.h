@@ -5,27 +5,29 @@
 enum KeyState
 {
 	NONE,
-	UP,
 	DOWN,
-	PUSH
+	PUSH,
+	UP
 };
 
 class Input
 {
 
 public:
-	Input();
+	Input(HWND hwnd);
 	~Input();
 	void Update();
 	KeyState GetKeyState(int);
-	void CaptureMousePos(HWND hwnd);
 	POINT GetMouseMove();
 protected:
 
 
 private:
+	HWND mHWnd = nullptr;
 	std::unordered_map<int, KeyState> mKeyStates;
 	POINT mLastMousePos;
 	POINT mMouseMove;
+
+	void CaptureMousePos();
 };
 

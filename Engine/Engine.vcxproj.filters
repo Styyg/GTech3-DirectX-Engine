@@ -57,6 +57,9 @@
     <ClCompile Include="Rigidbody.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="GeometryGenerator.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="d3dUtil.h">
@@ -107,11 +110,17 @@
     <ClInclude Include="Rigidbody.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="GeometryGenerator.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Text Include="Shaders\cube_shader.hlsl" />
   </ItemGroup>
   <ItemGroup>
+    <Text Include="Shaders\cube_shader.hlsl">
+      <Filter>Resource Files</Filter>
+    </Text>
     <Text Include="Shaders\cube_shader.hlsl">
       <Filter>Resource Files</Filter>
     </Text>
