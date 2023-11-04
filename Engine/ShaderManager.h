@@ -2,12 +2,9 @@
 
 #include "d3dUtil.h"
 
-using namespace std;
-using namespace Microsoft::WRL;
-
 struct ByteCode {
-	ComPtr<ID3DBlob> vsCubeByteCode;
-	ComPtr<ID3DBlob> psCubeByteCode;
+	Microsoft::WRL::ComPtr<ID3DBlob> vsCubeByteCode;
+	Microsoft::WRL::ComPtr<ID3DBlob> psCubeByteCode;
 };
 
 class ShaderManager
@@ -18,7 +15,7 @@ public:
 
 	ByteCode CallStack();
 
-	ComPtr<ID3DBlob> CompileShader(wstring shaderFile, string entryPoint, string target);
+	Microsoft::WRL::ComPtr<ID3DBlob> CompileShader(std::wstring shaderFile, std::string entryPoint, std::string target);
 private:
 	
 };

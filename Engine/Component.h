@@ -1,5 +1,7 @@
 #pragma once
 
+//#include "GameObject.h"
+
 class GameObject;
 
 class Component
@@ -8,6 +10,14 @@ public:
 	Component(GameObject* gameObject);
 	~Component();
 
-private:
+	enum Type
+	{
+		COLLIDER,
+		RIGIDBODY,
+		MESH,
+		TRIGGER
+	};
+
+protected:
 	GameObject* mGameObjectPtr;
 };

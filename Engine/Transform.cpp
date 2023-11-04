@@ -1,5 +1,7 @@
 #include "Transform.h"
 
+using namespace DirectX;
+
 Transform::Transform() : vPosition(0.0f, 0.0f, 0.0f), vScale(1.0f, 1.0f, 1.0f)
 {
     // Constructor: Initialize the transformation with default values
