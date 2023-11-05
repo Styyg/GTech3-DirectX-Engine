@@ -16,5 +16,5 @@ public:
 	Collider(GameObject* gameObject);
 	~Collider();
 	float GetDistance(const GameObject& Gameobject2);
-	//bool IsColliding(GameObject* mGameObjectPtr, const GameObject& Gameobject2);
+	bool IsColliding(const GameObject& Gameobject2);
 }; 

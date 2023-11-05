@@ -21,6 +21,7 @@ public:
 	void update();
 	void AddCollider(Collider collider);
 	void AddRigidbody(Rigidbody rigidbody);
+	Collider* GetCollider();
 	//void AddMesh(Mesh mesh);
 	//void AddTrigger(Trigger trigger);
 };
