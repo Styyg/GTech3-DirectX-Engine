@@ -6,7 +6,7 @@ Manager* Manager::GetInstance()
 	return &manager;
 }
 
-void Manager::AddGameObject(const GameObject& obj)
+void Manager::AddGameObject(GameObject* obj)
 {
 	gameObjects.push_back(obj);
 }
@@ -20,7 +20,7 @@ void Manager::ClearGameObjects()
 	gameObjects.clear();
 }
 
-list<GameObject>& Manager::GetGameObjects()
+list<GameObject*>& Manager::GetGameObjects()
 {
 	return gameObjects;
 }

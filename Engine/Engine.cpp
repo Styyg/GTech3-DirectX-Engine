@@ -18,7 +18,6 @@ Engine::Engine(HWND hWnd) : mHWnd(hWnd)
 
 	//RenderTargetView();
 	//DescribeDepthStencilBuffer();
-	BuildShadersAndInputLayout();
 	BuildConstantBuffers();
 	BuildRootSignature();
 
@@ -29,14 +28,26 @@ Engine::Engine(HWND hWnd) : mHWnd(hWnd)
 	Flush();
 	// aditionnal free upload buffer
 
-	BuildPSO();
-
-	DrawAllGameObjects();
+	BuildAllGameObjects();
 }
 
 Engine::~Engine()
 {
 
+}
+
+LONG Engine::GetClientWidth()
+{
+	RECT rect;
+	GetWindowRect(mHWnd, &rect);
+	return rect.right - rect.left;
+}
+
+LONG Engine::GetClientHeight()
+{
+	RECT rect;
+	GetWindowRect(mHWnd, &rect);
+	return rect.bottom - rect.top;
 }
 
 void Engine::OnResize()
@@ -376,72 +387,127 @@ void Engine::Flush()
 	}
 }
 
-void Engine::DrawAllGameObjects()
+void Engine::BuildAllGameObjects()
 {
-	Manager* mgr = Manager::GetInstance();
-
-	GameObject obj1;
-	//GameObject obj2;
-
-	mgr->AddGameObject(obj1);
-	//mgr->AddGameObject(obj2);
-
-	list<GameObject>& gameObjects = mgr->GetGameObjects();
-
-	for (GameObject& obj : gameObjects) {
-		//
-		mCommandList->SetPipelineState(mPSO.Get());
-		mCommandList->SetGraphicsRootSignature(mRootSignature.Get());
-		mCommandList->IASetVertexBuffers(0, 1, &mTriangleGeo->VertexBufferView());
-		mCommandList->IASetIndexBuffer(&mTriangleGeo->IndexBufferView());
-		mCommandList->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-		mCommandList->SetGraphicsRootDescriptorTable(0, mCbvHeap->GetGPUDescriptorHandleForHeapStart());
-		mCommandList->DrawIndexedInstanced(mTriangleGeo->DrawArgs["triangle"].IndexCount, 1, 0, 0, 0);
-	}
-}
-
-void Engine::BuildShadersAndInputLayout()
-{
-	//ComPtr<ID3DBlob> vertexShaderByteCode = vertexShader->GetShaderByteCode();
-
-	mVsByteCode;
-	mPsByteCode;
-
-	mInputLayout =
+	// Shader
+	vector<D3D12_INPUT_ELEMENT_DESC> mInputLayout =
 	{
 		{"POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0},
 		{"COLOR", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, 12, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0}
 	};
+
+	Shader& myVertexShader = shaderManager.AddShader(L"MyVertexShader", L"../Engine/Shaders/cube_shader.hlsl", "VS", "vs_5_0");
+	Shader& myPixelShader = shaderManager.AddShader(L"MyPixelShader", L"../Engine/Shaders/cube_shader.hlsl", "PS", "ps_5_0");
+
+	Shader* vertexShader = shaderManager.GetShader(L"MyVertexShader");
+	Shader* pixelShader = shaderManager.GetShader(L"MyPixelShader");
+
+	ComPtr<ID3DBlob> vertexShaderByteCode = vertexShader->GetShaderByteCode();
+	ComPtr<ID3DBlob> pixelShaderByteCode = pixelShader->GetShaderByteCode();
+
+	// Generic PSO
+
+	PSOManager psoManager;
+
+	D3D12_GRAPHICS_PIPELINE_STATE_DESC basePsoDesc = {};
+
+	// Shaders
+	basePsoDesc.VS = { reinterpret_cast<BYTE*>(vertexShaderByteCode->GetBufferPointer()), vertexShaderByteCode->GetBufferSize() };
+	basePsoDesc.PS = { reinterpret_cast<BYTE*>(pixelShaderByteCode->GetBufferPointer()), pixelShaderByteCode->GetBufferSize() };
+
+	// États par défaut pour le reste du PSO
+	basePsoDesc.BlendState = CD3DX12_BLEND_DESC(D3D12_DEFAULT);
+	basePsoDesc.SampleMask = UINT_MAX;
+	basePsoDesc.RasterizerState = CD3DX12_RASTERIZER_DESC(D3D12_DEFAULT);
+	basePsoDesc.DepthStencilState = CD3DX12_DEPTH_STENCIL_DESC(D3D12_DEFAULT);
+
+	// Formats de rendu
+	basePsoDesc.RTVFormats[0] = DXGI_FORMAT_R8G8B8A8_UNORM;
+	basePsoDesc.DSVFormat = DXGI_FORMAT_D24_UNORM_S8_UINT;
+	basePsoDesc.SampleDesc.Count = 1;
+	basePsoDesc.SampleDesc.Quality = 0;
+
+	// Nombre de RenderTargets
+	basePsoDesc.NumRenderTargets = 1;
+
+	// Primitive Topology
+	basePsoDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
+
+	// Input Layout
+	basePsoDesc.InputLayout = { mInputLayout.data(), (UINT)mInputLayout.size() };
+
+	// Root Signature
+	basePsoDesc.pRootSignature = mRootSignature.Get();
+
+	Manager* mgr = Manager::GetInstance();
+
+	GameObject* obj1 = new GameObject;
+	mgr->AddGameObject(obj1);
+	ID3D12PipelineState* obj1PSO = psoManager.GetOrCreatePSO(L"Obj1PSO", basePsoDesc, mD3DDevice.Get());
+	obj1->SetPSO(obj1PSO);
+	obj1->CreateCB(mD3DDevice.Get());
+	obj1->SetGeo(mTriangleGeo.get());
+
+	GameObject* obj2 = new GameObject;
+	mgr->AddGameObject(obj2);
+	ID3D12PipelineState* obj2PSO = psoManager.GetOrCreatePSO(L"Obj2PSO", basePsoDesc, mD3DDevice.Get());
+	obj2->SetPSO(obj2PSO);
+	obj2->CreateCB(mD3DDevice.Get());
+	obj2->SetGeo(mTriangleGeo.get());
+}
+
+void Engine::DrawAllGameObjects()
+{
+	Manager* mgr = Manager::GetInstance();
+	list<GameObject*>& gameObjects = mgr->GetGameObjects();
+	
+	for (GameObject* obj : gameObjects) {
+
+		ObjectConstants objConstants;
+		objConstants.WorldViewProj = mWorldViewProj;
+		//XMFLOAT4X4 m;
+		//XMStoreFloat4x4(&m, XMMatrixTranspose(XMLoadFloat4x4(&mWorldViewProj)));
+		obj->mObjectCB->CopyData(0, objConstants);
+
+		// Utilisez le PSO spécifique à l'objet
+		ID3D12PipelineState* pso = obj->GetPSO();
+		if (pso != nullptr) {
+			mCommandList->SetPipelineState(pso);
+		}
+	
+		mCommandList->SetGraphicsRootSignature(mRootSignature.Get());
+		mCommandList->SetGraphicsRootConstantBufferView(0, obj->mObjectCB->Resource()->GetGPUVirtualAddress());
+
+		// Assumer que chaque GameObject sait comment configurer ses propres buffers
+		obj->SetupBuffers(mCommandList.Get());
+	
+		// Assumer que chaque GameObject sait comment dessiner lui-même
+		obj->Draw(mCommandList.Get());
+	}
 }
 
 void Engine::BuildConstantBuffers()
 {
-	mObjectCB = std::make_unique<UploadBuffer<ObjectConstants>>(mD3DDevice.Get(), 1, true);
+	//mObjectCB = std::make_unique<UploadBuffer<ObjectConstants>>(mD3DDevice.Get(), 1, true);
 
-	UINT objCBByteSize = d3dUtil::CalcConstantBufferByteSize(sizeof(ObjectConstants));
+	//UINT objCBByteSize = d3dUtil::CalcConstantBufferByteSize(sizeof(ObjectConstants));
 
-	D3D12_GPU_VIRTUAL_ADDRESS cbAddress = mObjectCB->Resource()->GetGPUVirtualAddress();
+	//D3D12_GPU_VIRTUAL_ADDRESS cbAddress = mObjectCB->Resource()->GetGPUVirtualAddress();
 	// Offset to the ith object constant buffer in the buffer.
-	int boxCBufIndex = 0;
-	cbAddress += boxCBufIndex * objCBByteSize;
+	//int boxCBufIndex = 0;
+	//cbAddress += boxCBufIndex * objCBByteSize;
 
-	D3D12_CONSTANT_BUFFER_VIEW_DESC cbvDesc;
-	cbvDesc.BufferLocation = cbAddress;
-	cbvDesc.SizeInBytes = d3dUtil::CalcConstantBufferByteSize(sizeof(ObjectConstants));
+	//D3D12_CONSTANT_BUFFER_VIEW_DESC cbvDesc;
+	//cbvDesc.BufferLocation = cbAddress;
+	//cbvDesc.SizeInBytes = d3dUtil::CalcConstantBufferByteSize(sizeof(ObjectConstants));
 
-	mD3DDevice->CreateConstantBufferView(&cbvDesc, mCbvHeap->GetCPUDescriptorHandleForHeapStart());
+	//mD3DDevice->CreateConstantBufferView(&cbvDesc, mCbvHeap->GetCPUDescriptorHandleForHeapStart());
 }
 
 void Engine::BuildRootSignature()
 {
 	CD3DX12_ROOT_PARAMETER slotRootParameter[1];
-
-	//slotRootParameter[0].InitAsConstantBufferView(0);
-	 
-	// Create a single descriptor table of CBVs.
-	CD3DX12_DESCRIPTOR_RANGE cbvTable; 
-	cbvTable.Init(D3D12_DESCRIPTOR_RANGE_TYPE_CBV, 1, 0);
-	slotRootParameter[0].InitAsDescriptorTable(1, &cbvTable);
+	 	slotRootParameter[0].InitAsConstantBufferView(0);
 
 	// A root signature is an array of root parameters.
 	CD3DX12_ROOT_SIGNATURE_DESC rootSigDesc(1, slotRootParameter, 0, nullptr, D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);
@@ -453,8 +519,6 @@ void Engine::BuildRootSignature()
 
 	ThrowIfFailed(mD3DDevice->CreateRootSignature(0, serializedRootSig->GetBufferPointer(), serializedRootSig->GetBufferSize(), IID_PPV_ARGS(&mRootSignature)));
 }
-
-//
 
 void Engine::BuildTriangleGeometry()
 {
@@ -480,7 +544,7 @@ void Engine::BuildTriangleGeometry()
 	const UINT vbByteSize = (UINT)triangle.vertices.size() * sizeof(Vertex);
 	const UINT ibByteSize = (UINT)triangle.indices.size() * sizeof(std::uint16_t);
 
-	mTriangleGeo = std::make_unique<MeshGeometry>();
+	mTriangleGeo = make_unique<MeshGeometry>();
 	mTriangleGeo->Name = "triGeo";
 
 	//ThrowIfFailed(D3DCreateBlob(vbByteSize, &mTriangleGeo->VertexBufferCPU));
@@ -506,49 +570,9 @@ void Engine::BuildTriangleGeometry()
 	submesh.BaseVertexLocation = 0;
 
 	mTriangleGeo->DrawArgs["triangle"] = submesh;
-}
 
-void Engine::BuildPSO()
-{
-	D3D12_GRAPHICS_PIPELINE_STATE_DESC psoDesc;
-	ZeroMemory(&psoDesc, sizeof(D3D12_GRAPHICS_PIPELINE_STATE_DESC));
-	psoDesc.InputLayout = { mInputLayout.data(), (UINT)mInputLayout.size() };
-	psoDesc.pRootSignature = mRootSignature.Get();
-	psoDesc.VS =
-	{
-		reinterpret_cast<BYTE*>(mVsByteCode->GetBufferPointer()),
-		mVsByteCode->GetBufferSize()
-	};
-	psoDesc.PS =
-	{
-		reinterpret_cast<BYTE*>(mPsByteCode->GetBufferPointer()),
-		mPsByteCode->GetBufferSize()
-	};
-	psoDesc.RasterizerState = CD3DX12_RASTERIZER_DESC(D3D12_DEFAULT);
-	psoDesc.BlendState = CD3DX12_BLEND_DESC(D3D12_DEFAULT);
-	psoDesc.DepthStencilState = CD3DX12_DEPTH_STENCIL_DESC(D3D12_DEFAULT);
-	psoDesc.SampleMask = UINT_MAX;
-	psoDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
-	psoDesc.NumRenderTargets = 1;
-	psoDesc.RTVFormats[0] = mBackBufferFormat;
-	psoDesc.SampleDesc.Count = m4xMsaaState ? 4 : 1;
-	psoDesc.SampleDesc.Quality = m4xMsaaState ? (m4xMsaaQuality - 1) : 0;
-	psoDesc.DSVFormat = mDepthStencilFormat;
-	ThrowIfFailed(mD3DDevice->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(&mPSO)));
-}
+	mTriangleGeo->indexCount = submesh.IndexCount;
 
-LONG Engine::GetClientWidth() 
-{
-	RECT rect;
-	GetWindowRect(mHWnd, &rect);
-	return rect.right - rect.left;
-}
-
-LONG Engine::GetClientHeight() 
-{
-	RECT rect;
-	GetWindowRect(mHWnd, &rect);
-	return rect.bottom - rect.top;
 }
 
 void Engine::InitD3D()
@@ -612,17 +636,18 @@ void Engine::Update()
 	// Mise à jour de la matrice de vue et de projection dans le shader
 	XMMATRIX world = XMLoadFloat4x4(&mWorld);
 	XMMATRIX worldViewProj = world * view * proj;
+	XMStoreFloat4x4(&mWorldViewProj, XMMatrixTranspose(worldViewProj));
 
-	ObjectConstants objConstants;
-	XMStoreFloat4x4(&objConstants.WorldViewProj, XMMatrixTranspose(worldViewProj));
-	mObjectCB->CopyData(0, objConstants);
+	//ObjectConstants objConstants;
+	//XMStoreFloat4x4(&objConstants.WorldViewProj, XMMatrixTranspose(worldViewProj));
+	//mObjectCB->CopyData(0, objConstants);
 }
 
 void Engine::Draw()
 {
 	// Reuse the memory associated with command recording.
 	// We can only reset when the associated command lists have finished execution on the GPU.
-	ThrowIfFailed(mCommandAllocator->Reset());
+	HRESULT hRes = mCommandAllocator->Reset();
 
 	// A command list can be reset after it has been added to the command queue via ExecuteCommandList.
 	// Reusing the command list reuses memory.
@@ -646,8 +671,6 @@ void Engine::Draw()
 	mCommandList->SetDescriptorHeaps(_countof(descriptorHeaps), descriptorHeaps);
 
 	DrawAllGameObjects();
-
-
 	
 	// Indicate a state transition on the resource usage.
 	mCommandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(CurrentBackBuffer(),

@@ -15,6 +15,7 @@
 #include "Camera.h"
 #include "ShaderManager.h"
 #include "GeometryGenerator.h"
+#include "PSOManager.h"
 
 using namespace Microsoft::WRL;
 using namespace DirectX;
@@ -37,6 +38,9 @@ public:
     Engine(HWND hWnd);
     virtual ~Engine();
 
+    LONG GetClientWidth();
+    LONG GetClientHeight();
+
     void Update();
     void Draw();
     void OnResize();
@@ -50,16 +54,11 @@ public:
 
     void RenderTargetView();
     void DescribeDepthStencilBuffer();
-    void BuildShadersAndInputLayout();
     void BuildConstantBuffers();
     void BuildRootSignature();
     void BuildTriangleGeometry();
-    void BuildPSO(); 
     
     void FlushCommandQueue();
-
-    LONG GetClientWidth();
-    LONG GetClientHeight();
 
     ID3D12Resource* CurrentBackBuffer()const;
     D3D12_CPU_DESCRIPTOR_HANDLE CurrentBackBufferView()const;
@@ -70,7 +69,7 @@ public:
     void ExecuteCommandList();
     void Flush();
 
-    // Manager
+    void BuildAllGameObjects();
     void DrawAllGameObjects();
 
 private:
@@ -78,9 +77,8 @@ private:
     
     HWND mHWnd = nullptr;
 
-    // Set true to use 4X MSAA (�4.1.8).  The default is false.
-    bool      m4xMsaaState = false;    // 4X MSAA enabled
-    UINT      m4xMsaaQuality = 0;      // quality level of 4X MSAA
+    bool      m4xMsaaState = false;
+    UINT      m4xMsaaQuality = 0;
 
     UINT64 mFenceValue = 0;
 
@@ -106,14 +104,10 @@ private:
     ComPtr<ID3D12Resource> mDepthStencilBuffer;
     ComPtr<ID3D12PipelineState> mPSO = nullptr;
     ComPtr<ID3D12RootSignature> mRootSignature = nullptr;
-    ComPtr<ID3DBlob> mVsByteCode = nullptr;
-    ComPtr<ID3DBlob> mPsByteCode = nullptr;
 
     UINT64 mCurrentFence = 0;
 
     D3D12_FEATURE_DATA_MULTISAMPLE_QUALITY_LEVELS msQualityLevels;
-
-    vector<D3D12_INPUT_ELEMENT_DESC> mInputLayout;
 
     D3D12_VIEWPORT mViewport;
     D3D12_RECT mScissorRect;
@@ -124,6 +118,7 @@ private:
     DXGI_FORMAT mDepthStencilFormat = DXGI_FORMAT_D24_UNORM_S8_UINT;
 
     XMFLOAT4X4 mWorld = MathHelper::Identity4x4();
+    XMFLOAT4X4 mWorldViewProj = MathHelper::Identity4x4(); // tranposed
 
     float mTheta = 1.5f * XM_PI;
     float mPhi = XM_PIDIV4;
