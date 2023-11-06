@@ -9,16 +9,10 @@
 #include <vector>
 #include <DirectXMath.h>
 #include "d3dUtil.h"
-#include "UploadBuffer.h"
-
 #include "ShaderManager.h"
 #include "Input.h"
 #include "GeometryGenerator.h"
-
-struct ObjectConstants
-{
-    DirectX::XMFLOAT4X4 WorldViewProj = MathHelper::Identity4x4();
-};
+#include "Entity.h"
 
 class Engine
 {
@@ -28,6 +22,7 @@ public:
 
     void Update();
     void Draw();
+    void DrawItems();
     void OnResize();
 
     void InitD3D();
@@ -104,7 +99,7 @@ private:
     D3D12_VIEWPORT mViewport;
     D3D12_RECT mScissorRect;
 
-    std::unique_ptr<MeshGeometry> mTriangleGeo = nullptr;
+    std::unique_ptr<MeshGeometry> mCubeGeo = nullptr;
 
     DXGI_FORMAT mBackBufferFormat = DXGI_FORMAT_R8G8B8A8_UNORM;
     DXGI_FORMAT mDepthStencilFormat = DXGI_FORMAT_D24_UNORM_S8_UINT;
@@ -118,6 +113,8 @@ private:
     float mRadius = 5.0f;
 
     Input input;
+
+    std::vector<Entity*> mAllEntities;
 
     int mClientWidth = 800;
     int mClientHeight = 600;

@@ -19,17 +19,17 @@ Engine::Engine(HWND hWnd) : mHWnd(hWnd), input(hWnd)
 	//RenderTargetView();
 	//DescribeDepthStencilBuffer();
 	BuildShadersAndInputLayout();
-	BuildConstantBuffers();
+	//BuildConstantBuffers();
 	BuildRootSignature();
 
 	ResetCommandList();
+	BuildPSO();
 	BuildTriangleGeometry();
 	CloseCommandeList();
 	ExecuteCommandList();
 	Flush();
 	// aditionnal free upload buffer
 
-	BuildPSO();
 }
 
 Engine::~Engine()
@@ -412,13 +412,7 @@ void Engine::BuildConstantBuffers()
 void Engine::BuildRootSignature()
 {
 	CD3DX12_ROOT_PARAMETER slotRootParameter[1];
-
-	//slotRootParameter[0].InitAsConstantBufferView(0);
-	 
-	// Create a single descriptor table of CBVs.
-	CD3DX12_DESCRIPTOR_RANGE cbvTable; 
-	cbvTable.Init(D3D12_DESCRIPTOR_RANGE_TYPE_CBV, 1, 0);
-	slotRootParameter[0].InitAsDescriptorTable(1, &cbvTable);
+	slotRootParameter[0].InitAsConstantBufferView(0);
 
 	// A root signature is an array of root parameters.
 	CD3DX12_ROOT_SIGNATURE_DESC rootSigDesc(1, slotRootParameter, 0, nullptr, D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);
@@ -435,32 +429,48 @@ void Engine::BuildRootSignature()
 
 void Engine::BuildTriangleGeometry()
 {
-	GeometryGenerator geoGen;
-	Mesh triangle = geoGen.CreateCube(1.0f, 1.0f, 1.0f);
+	//GeometryGenerator geoGen;
+	//Mesh triangle = geoGen.CreateCube(1.0f, 1.0f, 1.0f);
 
-	const UINT vbByteSize = (UINT)triangle.vertices.size() * sizeof(Vertex);
-	const UINT ibByteSize = (UINT)triangle.indices.size() * sizeof(std::uint16_t);
+	//const UINT vbByteSize = (UINT)triangle.vertices.size() * sizeof(Vertex);
+	//const UINT ibByteSize = (UINT)triangle.indices.size() * sizeof(std::uint16_t);
 
-	mTriangleGeo = std::make_unique<MeshGeometry>();
-	mTriangleGeo->Name = "triGeo";
+	//mCubeGeo = std::make_unique<MeshGeometry>();
+	//mCubeGeo->Name = "triGeo";
 
-	mTriangleGeo->VertexBufferGPU = d3dUtil::CreateDefaultBuffer(mD3DDevice.Get(),
-		mCommandList.Get(), triangle.vertices.data(), vbByteSize, mTriangleGeo->VertexBufferUploader);
+	//mCubeGeo->VertexBufferGPU = d3dUtil::CreateDefaultBuffer(mD3DDevice.Get(),
+	//	mCommandList.Get(), triangle.vertices.data(), vbByteSize, mCubeGeo->VertexBufferUploader);
 
-	mTriangleGeo->IndexBufferGPU = d3dUtil::CreateDefaultBuffer(mD3DDevice.Get(),
-		mCommandList.Get(), triangle.indices.data(), ibByteSize, mTriangleGeo->IndexBufferUploader);
+	//mCubeGeo->IndexBufferGPU = d3dUtil::CreateDefaultBuffer(mD3DDevice.Get(),
+	//	mCommandList.Get(), triangle.indices.data(), ibByteSize, mCubeGeo->IndexBufferUploader);
 
-	mTriangleGeo->VertexByteStride = sizeof(Vertex);
-	mTriangleGeo->VertexBufferByteSize = vbByteSize;
-	mTriangleGeo->IndexFormat = DXGI_FORMAT_R16_UINT;
-	mTriangleGeo->IndexBufferByteSize = ibByteSize;
+	//mCubeGeo->VertexByteStride = sizeof(Vertex);
+	//mCubeGeo->VertexBufferByteSize = vbByteSize;
+	//mCubeGeo->IndexFormat = DXGI_FORMAT_R16_UINT;
+	//mCubeGeo->IndexBufferByteSize = ibByteSize;
 
-	SubmeshGeometry submesh;
-	submesh.IndexCount = (UINT)triangle.indices.size();
-	submesh.StartIndexLocation = 0;
-	submesh.BaseVertexLocation = 0;
+	//SubmeshGeometry submesh;
+	//submesh.IndexCount = (UINT)triangle.indices.size();
+	//submesh.StartIndexLocation = 0;
+	//submesh.BaseVertexLocation = 0;
 
-	mTriangleGeo->DrawArgs["triangle"] = submesh;
+	//mCubeGeo->DrawArgs["triangle"] = submesh;
+
+	Entity* entity = new Entity(mCommandList, mD3DDevice, mPSO, mRootSignature, mCbvHeap);
+	entity->Translate(0.5, 0, 0);
+	mAllEntities.push_back(entity);
+
+	entity = new Entity(mCommandList, mD3DDevice, mPSO, mRootSignature, mCbvHeap);
+	entity->Translate(-0.5, 0, 0);
+	mAllEntities.push_back(entity);
+
+	entity = new Entity(mCommandList, mD3DDevice, mPSO, mRootSignature, mCbvHeap);
+	entity->Translate(0.5, 0.5, 0);
+	mAllEntities.push_back(entity);
+
+	entity = new Entity(mCommandList, mD3DDevice, mPSO, mRootSignature, mCbvHeap);
+	entity->Translate(-0.5, -0.5, 0);
+	mAllEntities.push_back(entity);
 }
 
 void Engine::BuildPSO()
@@ -591,9 +601,13 @@ void Engine::Update()
 	XMMATRIX worldViewProj = world * view * proj;
 
 	// Update the constant buffer with the latest worldViewProj matrix.
-	ObjectConstants objConstants;
-	XMStoreFloat4x4(&objConstants.WorldViewProj, XMMatrixTranspose(worldViewProj));
-	mObjectCB->CopyData(0, objConstants);
+	//ObjectConstants objConstants;
+	//XMStoreFloat4x4(&objConstants.WorldViewProj, XMMatrixTranspose(worldViewProj));
+	//mObjectCB->CopyData(0, objConstants);
+	for (size_t i = 0; i < mAllEntities.size(); i++)
+	{
+		mAllEntities[i]->Update(worldViewProj);
+	}
 }
 
 void Engine::Draw()
@@ -604,7 +618,7 @@ void Engine::Draw()
 
 	// A command list can be reset after it has been added to the command queue via ExecuteCommandList.
 	// Reusing the command list reuses memory.
-	ThrowIfFailed(mCommandList->Reset(mCommandAllocator.Get(), mPSO.Get()));
+	ThrowIfFailed(mCommandList->Reset(mCommandAllocator.Get(), nullptr));
 	//ThrowIfFailed(mCommandList->Reset(mCommandAllocator.Get(), nullptr));
 
 	// Indicate a state transition on the resource usage.
@@ -626,13 +640,20 @@ void Engine::Draw()
 
 	////////
 	//ThrowIfFailed(mCommandList->Reset(mCommandAllocator.Get(), mPSO.Get()));
-	mCommandList->SetGraphicsRootSignature(mRootSignature.Get());
-	mCommandList->IASetVertexBuffers(0, 1, &mTriangleGeo->VertexBufferView());
-	mCommandList->IASetIndexBuffer(&mTriangleGeo->IndexBufferView());
-	mCommandList->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-	mCommandList->SetGraphicsRootDescriptorTable(0, mCbvHeap->GetGPUDescriptorHandleForHeapStart());
-	mCommandList->DrawIndexedInstanced(mTriangleGeo->DrawArgs["triangle"].IndexCount, 1, 0, 0, 0);
+	// shader
+	//mCommandList->SetPipelineState(mPSO.Get());
+	//mCommandList->SetGraphicsRootSignature(mRootSignature.Get());
+	//mCommandList->SetGraphicsRootConstantBufferView(0, mObjectCB->Resource()->GetGPUVirtualAddress());
+
+	//// geo
+	//mCommandList->IASetVertexBuffers(0, 1, &mCubeGeo->VertexBufferView());
+	//mCommandList->IASetIndexBuffer(&mCubeGeo->IndexBufferView());
+	//mCommandList->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+
+	//// draw
+	//mCommandList->DrawIndexedInstanced(mCubeGeo->DrawArgs["triangle"].IndexCount, 1, 0, 0, 0)
 	////////
+	DrawItems();
 
 	// Indicate a state transition on the resource usage.
 	mCommandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(CurrentBackBuffer(),
@@ -653,4 +674,12 @@ void Engine::Draw()
 	// swap the back and front buffers
 	ThrowIfFailed(mSwapChain->Present(0, 0));
 	mCurrentBackBuffer = (mCurrentBackBuffer + 1) % mSwapChainBufferCount;
+}
+
+void Engine::DrawItems()
+{
+	for (size_t i = 0; i < mAllEntities.size(); i++)
+	{
+		mAllEntities[i]->Render();
+	}
 }
