@@ -32,10 +32,15 @@ float Collider::GetDistance(const GameObject& Gameobject2)
 	return mDistance;
 }
 
-bool Collider::IsColliding(const GameObject& Gameobject2)
-{
-	if (mGameObjectPtr.mCmps)
-		return true;
-	else:
-		return false;
-}
+//bool Collider::IsColliding(const GameObject& Gameobject2)
+//{
+//	if ()
+//	{
+//		return true;
+//	}
+//		
+//	else
+//	{
+//		return false;
+//	}
+//}
