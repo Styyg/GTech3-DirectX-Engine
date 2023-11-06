@@ -1,4 +1,5 @@
 #include "GameObject.h"
+//#include "Collider.h"
 
 GameObject::GameObject(): m_PSO(nullptr)
 {
@@ -10,9 +11,53 @@ GameObject::~GameObject()
 
 }
 
-void GameObject::AddComponent(Component component)
+void GameObject::AddCollider(Collider* collider)
 {
-	mCmps.push_back(component);
+	mCmps.emplace(Component::COLLIDER, collider);
+
+}
+
+void GameObject::AddRigidbody(Rigidbody* rigidbody)
+{
+	mCmps.emplace(Component::RIGIDBODY, rigidbody);
+}
+
+Collider* GameObject::GetCollider() {
+    // Utilise la fonction find pour chercher le composant Collider dans mCmps.
+    auto it = mCmps.find(Component::COLLIDER); 
+
+    // V�rifie si le composant Collider est trouv�.
+    if (it != mCmps.end()) {
+        // Si le composant Collider est trouv�, renvoie un pointeur vers celui-ci.
+        //return (Collider*)c;
+        return reinterpret_cast<Collider*>(it->second);
+    }
+    else {
+        // Le composant Collider n'est pas trouv�, renvoie nullptr.
+        return nullptr;
+    }
+}
+
+
+//void GameObject::AddMesh(Mesh mesh)
+//{
+//	mCmps.emplace(Component::MESH, mesh);
+//}
+/*
+void GameObject::AddTrigger(Trigger trigger)
+{
+	mCmps.emplace(TRIGGER, trigger);
+
+}*/
+
+void GameObject::Render()
+{
+
+}
+
+void GameObject::update()
+{
+    
 }
 
 void GameObject::CreateCB(ID3D12Device* pDevice)

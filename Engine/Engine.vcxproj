@@ -105,6 +105,7 @@
     <ClCompile Include="Rigidbody.cpp" />
     <ClCompile Include="GeometryGenerator.cpp" />
     <ClCompile Include="Shader.cpp" />
+    <ClCompile Include="MeshRenderer.cpp" />
     <ClCompile Include="ShaderManager.cpp" />
     <ClCompile Include="Transform.cpp" />
   </ItemGroup>
@@ -126,6 +127,7 @@
     <ClInclude Include="Rigidbody.h" />
     <ClInclude Include="GeometryGenerator.h" />
     <ClInclude Include="Shader.h" />
+    <ClInclude Include="MeshRenderer.h" />
     <ClInclude Include="ShaderManager.h" />
   </ItemGroup>
   <ItemGroup>

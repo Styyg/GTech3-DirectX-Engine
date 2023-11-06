@@ -2,14 +2,13 @@
 #include <map>
 #include <string>
 
-using namespace std;
-
-class ShaderManager {
+class ShaderManager
+{
 public:
     ShaderManager();
     ~ShaderManager();
 
-    // Ajouter un nouveau shader et retourner une référence vers celui-ci
+    // Ajouter un nouveau shader et retourner une rï¿½fï¿½rence vers celui-ci
     Shader& AddShader(const wstring& shaderName, const wstring& shaderFile, const string& entryPoint, const string& target);
 
     // Obtenir un shader par son nom

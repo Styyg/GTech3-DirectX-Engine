@@ -10,7 +10,7 @@ GeometryGenerator::~GeometryGenerator()
 
 }
 
-GeometryGenerator::Mesh GeometryGenerator::CreateTriangle3D(float width, float height, float depth)
+Mesh GeometryGenerator::CreateTriangle3D(float width, float height, float depth)
 {
 	Mesh mesh;
 
@@ -22,20 +22,20 @@ GeometryGenerator::Mesh GeometryGenerator::CreateTriangle3D(float width, float h
 	{
 		// front face
 		Vertex({ XMFLOAT3(0.0f, +h, 0.0f), XMFLOAT4(Colors::Red) }), // up 
-		Vertex({ XMFLOAT3(+w, -h, 0.0f), XMFLOAT4(Colors::Red) }), // front right
-		Vertex({ XMFLOAT3(-w, -h, 0.0f), XMFLOAT4(Colors::Red) }), // front left
+		Vertex({ XMFLOAT3(+w, -h, -d), XMFLOAT4(Colors::Red) }), // front right
+		Vertex({ XMFLOAT3(-w, -h, -d), XMFLOAT4(Colors::Red) }), // front left
 		// left back face
 		Vertex({ XMFLOAT3(0.0f, +h, 0.0f), XMFLOAT4(Colors::Blue) }), // up 
-		Vertex({ XMFLOAT3(-w, -h, 0.0f), XMFLOAT4(Colors::Blue) }), // front left
+		Vertex({ XMFLOAT3(-w, -h, -d), XMFLOAT4(Colors::Blue) }), // front left
 		Vertex({ XMFLOAT3(0.0f, -h, d), XMFLOAT4(Colors::Blue) }), // back middle
 		// right back face
 		Vertex({ XMFLOAT3(0.0f, +h, 0.0f), XMFLOAT4(Colors::Green) }), // up 
 		Vertex({ XMFLOAT3(0.0f, -h, d), XMFLOAT4(Colors::Green) }), // back middle
-		Vertex({ XMFLOAT3(+w, -h, 0.0f), XMFLOAT4(Colors::Green) }), // front right
+		Vertex({ XMFLOAT3(+w, -h, -d), XMFLOAT4(Colors::Green) }), // front right
 		// bottom face
-		Vertex({ XMFLOAT3(+w, -h, 0.0f), XMFLOAT4(Colors::Green) }), // front right
+		Vertex({ XMFLOAT3(+w, -h, -d), XMFLOAT4(Colors::Red) }), // front right
 		Vertex({ XMFLOAT3(0.0f, -h, d), XMFLOAT4(Colors::Blue) }), // back middle
-		Vertex({ XMFLOAT3(-w, -h, 0.0f), XMFLOAT4(Colors::Red) }), // front left
+		Vertex({ XMFLOAT3(-w, -h, -d), XMFLOAT4(Colors::Green) }), // front left
 	};
 
 	mesh.indices =
@@ -53,29 +53,54 @@ GeometryGenerator::Mesh GeometryGenerator::CreateTriangle3D(float width, float h
 	return mesh;
 }
 
-/*void GeometryGenerator::CreateMesh()
+Mesh GeometryGenerator::CreateCube(float width, float height, float depth)
 {
-	const UINT vbByteSize = (UINT)mVertices.size() * sizeof(Vertex);
-	const UINT ibByteSize = (UINT)mIndices.size() * sizeof(uint16_t);
+	Mesh mesh;
 
-	mMeshGeo = std::make_unique<MeshGeometry>();
-	mMeshGeo->Name = "triGeo";
+	float w = 0.5f * width;
+	float h = 0.5f * height;
+	float d = 0.5f * depth;
 
-	//mMeshGeo->VertexBufferGPU = d3dUtil::CreateDefaultBuffer(mDevicePtr->Get(),
-	//	mCommandListPtr->Get(), mVertices.data(), vbByteSize, mMeshGeo->VertexBufferUploader);
+	mesh.vertices =
+	{
+		// front vertices
+		Vertex({ XMFLOAT3(-w, -h, -d), XMFLOAT4(Colors::LightBlue) }), // bottom left
+		Vertex({ XMFLOAT3(-w, +h, -d), XMFLOAT4(Colors::AliceBlue) }), // up left
+		Vertex({ XMFLOAT3(+w, +h, -d), XMFLOAT4(Colors::Azure) }), // up right
+		Vertex({ XMFLOAT3(+w, -h, -d), XMFLOAT4(Colors::Aquamarine) }), // bottom right
+		// back vertices
+		Vertex({ XMFLOAT3(-w, -h, +d), XMFLOAT4(Colors::Magenta) }), // bottom left
+		Vertex({ XMFLOAT3(-w, +h, +d), XMFLOAT4(Colors::MidnightBlue) }), // up left
+		Vertex({ XMFLOAT3(+w, +h, +d), XMFLOAT4(Colors::Orchid) }), // up right
+		Vertex({ XMFLOAT3(+w, -h, +d), XMFLOAT4(Colors::Silver) }), // bottom right
+	};
 
-	//mMeshGeo->IndexBufferGPU = d3dUtil::CreateDefaultBuffer(mDevicePtr->Get(),
-	//	mCommandListPtr->Get(), mIndices.data(), ibByteSize, mMeshGeo->IndexBufferUploader);
+	mesh.indices =
+	{
+		// front face
+		0, 1, 2,
+		0, 2, 3,
 
-	mMeshGeo->VertexByteStride = sizeof(Vertex);
-	mMeshGeo->VertexBufferByteSize = vbByteSize;
-	mMeshGeo->IndexFormat = DXGI_FORMAT_R16_UINT;
-	mMeshGeo->IndexBufferByteSize = ibByteSize;
+		// back face
+		4, 6, 5,
+		4, 7, 6,
 
-	SubmeshGeometry submesh;
-	submesh.IndexCount = (UINT)mIndices.size();
-	submesh.StartIndexLocation = 0;
-	submesh.BaseVertexLocation = 0;
+		// left face
+		4, 5, 1,
+		4, 1, 0,
 
-	mMeshGeo->DrawArgs["triangle"] = submesh;
-}*/
+		// right face
+		3, 2, 6,
+		3, 6, 7,
+
+		// top face
+		1, 5, 6,
+		1, 6, 2,
+
+		// bottom face
+		4, 0, 3,
+		4, 3, 7
+	};
+
+	return mesh;
+}

@@ -1,12 +1,11 @@
 #pragma once
-
 #include <iostream>
-#include <vector>
-
-#include "Component.h"
+#include <unordered_map>
 #include "Transform.h"
-
-using namespace std;
+//#include "Component.h"
+#include "Collider.h"
+#include "Rigidbody.h" 
+#include "Mesh.h" 
 
 class GameObject
 {
@@ -28,11 +27,21 @@ public:
 	void Draw(ID3D12GraphicsCommandList* commandList);
 
 private:
-	string mName;
-	Transform mTransform;
-	vector<Component>mCmps;
 	ID3D12PipelineState* m_PSO;
 	MeshGeometry* m_pGeo;
 public:
 	UploadBuffer<ObjectConstants>* mObjectCB = nullptr;
+	std::string mName;
+	std::unordered_map<Component::Type, Component*> mCmps;
+
+	Transform mTransform;
+	GameObject();
+	~GameObject();
+	void Render();
+	void update();
+	void AddCollider(Collider* collider);
+	void AddRigidbody(Rigidbody* rigidbody);
+	Collider* GetCollider();
+	//void AddMesh(Mesh mesh);
+	//void AddTrigger(Trigger trigger);
 };

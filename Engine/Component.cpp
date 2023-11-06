@@ -1,11 +1,11 @@
 #include "Component.h"
+#include "GameObject.h"
 
-Component::Component()
+Component::Component(GameObject* gameObject)
 {
-
+	mGameObjectPtr = gameObject;
 }
 
 Component::~Component()
 {
-
 }

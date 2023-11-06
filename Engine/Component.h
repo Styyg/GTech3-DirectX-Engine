@@ -1,16 +1,23 @@
 #pragma once
-#include "Mesh.h"
-#include "Collider.h"
-#include "Rigidbody.h"
+
+//#include "GameObject.h"
+
+class GameObject;
 
 class Component
 {
-private:
-	Mesh mMesh;
-	Collider mCollider;
-	Rigidbody mRigidbody;
 public:
-	Component();
+	Component(GameObject* gameObject);
 	~Component();
-};
 
+	enum Type
+	{
+		COLLIDER,
+		RIGIDBODY,
+		MESH,
+		TRIGGER
+	};
+
+protected:
+	GameObject* mGameObjectPtr;
+};

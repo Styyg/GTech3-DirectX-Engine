@@ -3,9 +3,11 @@
 
 #include "Manager.h"
 
+using namespace Microsoft::WRL;
 using namespace DirectX;
+using namespace std;
 
-Engine::Engine(HWND hWnd) : mHWnd(hWnd)
+Engine::Engine(HWND hWnd) : mHWnd(hWnd), input(hWnd)
 {
 	InitD3D();
 	SynchroProcess();
@@ -523,35 +525,13 @@ void Engine::BuildRootSignature()
 void Engine::BuildTriangleGeometry()
 {
 	GeometryGenerator geoGen;
-	GeometryGenerator::Mesh triangle = geoGen.CreateTriangle3D(1.0f, 1.0f, 1.5f);
-	GeometryGenerator::Mesh triangle2 = geoGen.CreateTriangle3D(0.5f, 5.0f, 1.5f);
-
-	/*std::array<Vertex, 3> vertices =
-	{
-		Vertex({ XMFLOAT3(-1.0f, -1.0f, 0.0f), XMFLOAT4(Colors::Red) }),
-		Vertex({ XMFLOAT3(+0.0f, +1.0f, 0.0f), XMFLOAT4(Colors::Green) }),
-		Vertex({ XMFLOAT3(+1.0f, -1.0f, 0.0f), XMFLOAT4(Colors::Blue) })
-	};
-
-	std::array<std::uint16_t, 6> indices =
-	{
-		// front face
-		0, 1, 2,
-		// back face
-		0, 2, 1,
-	};*/
+	Mesh triangle = geoGen.CreateCube(1.0f, 1.0f, 1.0f);
 
 	const UINT vbByteSize = (UINT)triangle.vertices.size() * sizeof(Vertex);
 	const UINT ibByteSize = (UINT)triangle.indices.size() * sizeof(std::uint16_t);
 
 	mTriangleGeo = make_unique<MeshGeometry>();
 	mTriangleGeo->Name = "triGeo";
-
-	//ThrowIfFailed(D3DCreateBlob(vbByteSize, &mTriangleGeo->VertexBufferCPU));
-	//CopyMemory(mTriangleGeo->VertexBufferCPU->GetBufferPointer(), vertices.data(), vbByteSize);
-
-	//ThrowIfFailed(D3DCreateBlob(ibByteSize, &mTriangleGeo->IndexBufferCPU));
-	//CopyMemory(mTriangleGeo->IndexBufferCPU->GetBufferPointer(), indices.data(), ibByteSize);
 
 	mTriangleGeo->VertexBufferGPU = d3dUtil::CreateDefaultBuffer(mD3DDevice.Get(),
 		mCommandList.Get(), triangle.vertices.data(), vbByteSize, mTriangleGeo->VertexBufferUploader);
@@ -633,6 +613,30 @@ void Engine::Update()
 	XMMATRIX view = camera.GetViewMatrix(0, 0, -4);
 	XMMATRIX proj = camera.GetProjectionMatrix(800, 600);
 
+	// temporary inputs to move the camera around the center
+	// input.Update();
+	// if (input.GetKeyState('Z'))
+	// 	mPhi += .01f;
+	
+	// if (input.GetKeyState('S'))
+	// 	mPhi -= .01f;
+
+	// if (input.GetKeyState('Q'))
+	// 	mTheta += .01f;
+
+	// if (input.GetKeyState('D'))
+	// 	mTheta -= .01f;
+
+	// // Build the view matrix.
+	// XMVECTOR pos = XMVectorSet(x, y, z, 1.0f);
+	// XMVECTOR target = XMVectorZero();
+	// XMVECTOR up = XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f);
+
+	// XMMATRIX view = XMMatrixLookAtLH(pos, target, up);
+	// XMStoreFloat4x4(&mView, view);
+
+	// XMMATRIX proj = XMMatrixPerspectiveFovLH(0.25f * MathHelper::Pi, 800/600.0f, 0.5f, 1000.0f);
+
 	// Mise à jour de la matrice de vue et de projection dans le shader
 	XMMATRIX world = XMLoadFloat4x4(&mWorld);
 	XMMATRIX worldViewProj = world * view * proj;
@@ -651,6 +655,7 @@ void Engine::Draw()
 
 	// A command list can be reset after it has been added to the command queue via ExecuteCommandList.
 	// Reusing the command list reuses memory.
+
 	ThrowIfFailed(mCommandList->Reset(mCommandAllocator.Get(), nullptr));
 
 	// Indicate a state transition on the resource usage.

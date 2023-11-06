@@ -4,8 +4,13 @@
 using namespace DirectX;
 
 
-Input::Input()
+Input::Input(HWND hWnd)
 {
+    mHWnd = hWnd;
+
+    //init last mouse pos
+    CaptureMousePos();
+
     mKeyStates.emplace(VK_LBUTTON, NONE);
     mKeyStates.emplace(VK_RBUTTON, NONE);
 }
@@ -17,6 +22,9 @@ Input::~Input()
 
 void Input::Update()
 {
+    CaptureMousePos();
+
+    // key pressed (including mouse buttons)
     for (auto it = mKeyStates.begin(); it != mKeyStates.end(); it++)
     {
         // Si appuyé
@@ -62,16 +70,17 @@ KeyState Input::GetKeyState(int keycode)
     return mKeyStates[keycode];
 }
 
-void Input::CaptureMousePos(HWND hwnd)
+void Input::CaptureMousePos()
 {
     POINT mousePos;
     GetCursorPos(&mousePos);
-    ScreenToClient(hwnd, &mousePos);
+    ScreenToClient(mHWnd, &mousePos);
     mMouseMove.x = mousePos.x - mLastMousePos.x;
     mMouseMove.y = mousePos.y - mLastMousePos.y;
     mLastMousePos = mousePos;
 }
 
+// return delta of mouse pos in a POINT struct
 POINT Input::GetMouseMove()
 {
     return mMouseMove;

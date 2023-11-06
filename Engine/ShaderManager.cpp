@@ -1,8 +1,15 @@
 #include "ShaderManager.h"
 
-ShaderManager::ShaderManager() {}
+using namespace std;
+using namespace Microsoft::WRL;
 
-ShaderManager::~ShaderManager() {
+ShaderManager::ShaderManager()
+{
+   
+}
+
+ShaderManager::~ShaderManager()
+{
     mShaders.clear();
 }
 
