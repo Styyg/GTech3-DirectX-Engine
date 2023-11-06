@@ -16,6 +16,7 @@
 #include "ShaderManager.h"
 #include "GeometryGenerator.h"
 #include "PSOManager.h"
+#include "GameTimer.h"
 
 struct ObjectConstants
 {
@@ -119,6 +120,7 @@ private:
     float mRadius = 5.0f;
 
     Input input;
+    GameTimer mGameTimer;
 
     int mClientWidth = 800;
     int mClientHeight = 600;

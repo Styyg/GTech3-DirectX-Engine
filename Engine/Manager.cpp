@@ -20,6 +20,14 @@ void Manager::ClearGameObjects()
 	gameObjects.clear();
 }
 
+void Manager::Update()
+{
+	for (GameObject* obj : gameObjects) 
+	{
+		obj->Update();
+	}
+}
+
 list<GameObject*>& Manager::GetGameObjects()
 {
 	return gameObjects;

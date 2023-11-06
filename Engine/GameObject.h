@@ -18,11 +18,12 @@ public:
 	void AddComponent(Component component);
 
 	// CB
-	void CreateCB(ID3D12Device* pDevice);
+	void CreateCB(ID3D12Device* pDevice, Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> CbvHeap);
 
 	void SetGeo(MeshGeometry* pGeo) { m_pGeo = pGeo; }
 	// PSO
 	void SetPSO(ID3D12PipelineState* pso);
+
 	ID3D12PipelineState* GetPSO() const;
 
 	void SetupBuffers(ID3D12GraphicsCommandList* commandList);
@@ -31,7 +32,7 @@ public:
 	//
 
 	void Render();
-	void update();
+	void Update();
 	void AddCollider(Collider* collider);
 	void AddRigidbody(Rigidbody* rigidbody);
 	Collider* GetCollider();

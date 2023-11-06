@@ -55,14 +55,22 @@ void GameObject::Render()
 
 }
 
-void GameObject::update()
+void GameObject::Update()
 {
-    
+
 }
 
-void GameObject::CreateCB(ID3D12Device* pDevice)
+void GameObject::CreateCB(ID3D12Device* pDevice, Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> CbvHeap)
 {
-    mObjectCB = new UploadBuffer<ObjectConstants>(pDevice, 1, true);
+    mObjectCB = new UploadBuffer<ObjectConstants>(pDevice, 1, true);	
+    
+    D3D12_GPU_VIRTUAL_ADDRESS cbAddress = mObjectCB->Resource()->GetGPUVirtualAddress();
+
+    D3D12_CONSTANT_BUFFER_VIEW_DESC cbvDesc;
+    cbvDesc.BufferLocation = cbAddress;
+    cbvDesc.SizeInBytes = d3dUtil::CalcConstantBufferByteSize(sizeof(ObjectConstants));
+
+    pDevice->CreateConstantBufferView(&cbvDesc, CbvHeap->GetCPUDescriptorHandleForHeapStart());
 }
 
 void GameObject::SetPSO(ID3D12PipelineState* pso) {

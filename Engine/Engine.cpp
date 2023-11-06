@@ -447,7 +447,7 @@ void Engine::BuildAllGameObjects()
 	mgr->AddGameObject(obj1);
 	ID3D12PipelineState* obj1PSO = psoManager.GetOrCreatePSO(L"Obj1PSO", basePsoDesc, mD3DDevice.Get());
 	obj1->SetPSO(obj1PSO);
-	obj1->CreateCB(mD3DDevice.Get());
+	obj1->CreateCB(mD3DDevice.Get(), mCbvHeap);
 	obj1->SetGeo(mTriangleGeo.get());
 
 	//GameObject* obj2 = new GameObject;
@@ -465,8 +465,11 @@ void Engine::DrawAllGameObjects()
 	
 	for (GameObject* obj : gameObjects) {
 
-		ObjectConstants objConstants;
-		objConstants.WorldViewProj = mWorldViewProj;
+		ObjectConstants objConstants;    
+		obj->mTransform.TranslateInWorld(1, 0, 0);
+		XMFLOAT4X4 world = obj->mTransform.mWorldMatrix;
+		XMStoreFloat4x4(&objConstants.WorldViewProj, XMMatrixTranspose(XMLoadFloat4x4(&mWorldViewProj) * XMLoadFloat4x4(&world)));
+		//objConstants.WorldViewProj = mWorldViewProj;
 		obj->mObjectCB->CopyData(0, objConstants);
 
 		// Utilisez le PSO spécifique à l'objet
@@ -606,13 +609,14 @@ void Engine::Update()
 {
 	Camera camera;
 	camera.Update();
+	input.Update();
+	Manager::GetInstance()->Update();
 
 	float x = mRadius * sinf(mPhi) * cosf(mTheta);
 	float z = mRadius * sinf(mPhi) * sinf(mTheta);
 	float y = mRadius * cosf(mPhi);
 
 	//// temporary inputs to move the camera around the center
-	input.Update();
 	if (input.GetKeyState('Z'))mPhi += .01f;
 	if (input.GetKeyState('S'))mPhi -= .01f;
 	if (input.GetKeyState('Q'))mTheta += .01f;
