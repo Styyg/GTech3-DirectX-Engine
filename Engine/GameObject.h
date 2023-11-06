@@ -12,15 +12,16 @@ class GameObject
 {
 private:
 	std::string mName;
-	std::unordered_map<Component::Type, Component> mCmps;
+	std::unordered_map<Component::Type, Component*> mCmps;
 public:
 	Transform mTransform;
 	GameObject();
 	~GameObject();
 	void Render();
 	void update();
-	void AddCollider(Collider collider);
-	void AddRigidbody(Rigidbody rigidbody);
+	void AddCollider(Collider* collider);
+	void AddRigidbody(Rigidbody* rigidbody);
+	Collider* GetCollider();
 	//void AddMesh(Mesh mesh);
 	//void AddTrigger(Trigger trigger);
 };
