@@ -566,16 +566,16 @@ void Engine::Update()
 	// temporary inputs to move the camera around the center
 	input.Update();
 	if (input.GetKeyState('Z'))
-		mPhi += .01f;
+		mPhi += .001f;
 	
 	if (input.GetKeyState('S'))
-		mPhi -= .01f;
+		mPhi -= .001f;
 
 	if (input.GetKeyState('Q'))
-		mTheta += .01f;
+		mTheta += .001f;
 
 	if (input.GetKeyState('D'))
-		mTheta -= .01f;
+		mTheta -= .001f;
 
 	// Build the view matrix.
 	XMVECTOR pos = XMVectorSet(x, y, z, 1.0f);
