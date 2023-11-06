@@ -1,21 +1,22 @@
-#pragma once
-
-#include "d3dUtil.h"
-
-struct ByteCode {
-	Microsoft::WRL::ComPtr<ID3DBlob> vsCubeByteCode;
-	Microsoft::WRL::ComPtr<ID3DBlob> psCubeByteCode;
-};
+#include "Shader.h"
+#include <map>
+#include <string>
 
 class ShaderManager
 {
 public:
-	ShaderManager();
-	~ShaderManager();
+    ShaderManager();
+    ~ShaderManager();
 
-	ByteCode CallStack();
+    // Ajouter un nouveau shader et retourner une r�f�rence vers celui-ci
+    Shader& AddShader(const wstring& shaderName, const wstring& shaderFile, const string& entryPoint, const string& target);
 
-	Microsoft::WRL::ComPtr<ID3DBlob> CompileShader(std::wstring shaderFile, std::string entryPoint, std::string target);
+    // Obtenir un shader par son nom
+    Shader* GetShader(const wstring& shaderName);
+
+    // Supprimer un shader par son nom
+    void RemoveShader(const wstring& shaderName);
+
 private:
-	
+    map<wstring, unique_ptr<Shader>> mShaders;
 };

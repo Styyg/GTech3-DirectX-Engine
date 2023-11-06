@@ -1,9 +1,9 @@
 #include "GameObject.h"
 //#include "Collider.h"
 
-GameObject::GameObject()
+GameObject::GameObject(): m_PSO(nullptr)
 {
-
+    
 }
 
 GameObject::~GameObject()
@@ -26,14 +26,14 @@ Collider* GameObject::GetCollider() {
     // Utilise la fonction find pour chercher le composant Collider dans mCmps.
     auto it = mCmps.find(Component::COLLIDER); 
 
-    // Vérifie si le composant Collider est trouvé.
+    // Vï¿½rifie si le composant Collider est trouvï¿½.
     if (it != mCmps.end()) {
-        // Si le composant Collider est trouvé, renvoie un pointeur vers celui-ci.
+        // Si le composant Collider est trouvï¿½, renvoie un pointeur vers celui-ci.
         //return (Collider*)c;
         return reinterpret_cast<Collider*>(it->second);
     }
     else {
-        // Le composant Collider n'est pas trouvé, renvoie nullptr.
+        // Le composant Collider n'est pas trouvï¿½, renvoie nullptr.
         return nullptr;
     }
 }
@@ -57,5 +57,30 @@ void GameObject::Render()
 
 void GameObject::update()
 {
+    
+}
 
+void GameObject::CreateCB(ID3D12Device* pDevice)
+{
+    mObjectCB = new UploadBuffer<ObjectConstants>(pDevice, 1, true);
+}
+
+void GameObject::SetPSO(ID3D12PipelineState* pso) {
+    m_PSO = pso;
+}
+
+ID3D12PipelineState* GameObject::GetPSO() const {
+    return m_PSO;
+}
+
+void GameObject::SetupBuffers(ID3D12GraphicsCommandList* commandList)
+{
+    commandList->IASetVertexBuffers(0, 1, &m_pGeo->VertexBufferView());
+    commandList->IASetIndexBuffer(&m_pGeo->IndexBufferView());
+    commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+}
+
+void GameObject::Draw(ID3D12GraphicsCommandList* commandList)
+{
+    commandList->DrawIndexedInstanced(m_pGeo->indexCount, 1, 0, 0, 0);
 }

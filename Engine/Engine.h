@@ -11,9 +11,11 @@
 #include "d3dUtil.h"
 #include "UploadBuffer.h"
 
-#include "ShaderManager.h"
 #include "Input.h"
+#include "Camera.h"
+#include "ShaderManager.h"
 #include "GeometryGenerator.h"
+#include "PSOManager.h"
 
 struct ObjectConstants
 {
@@ -25,6 +27,9 @@ class Engine
 public:
     Engine(HWND hWnd);
     virtual ~Engine();
+
+    LONG GetClientWidth();
+    LONG GetClientHeight();
 
     void Update();
     void Draw();
@@ -39,16 +44,11 @@ public:
 
     void RenderTargetView();
     void DescribeDepthStencilBuffer();
-    void BuildShadersAndInputLayout();
     void BuildConstantBuffers();
     void BuildRootSignature();
     void BuildTriangleGeometry();
-    void BuildPSO(); 
     
     void FlushCommandQueue();
-
-    LONG GetClientWidth();
-    LONG GetClientHeight();
 
     ID3D12Resource* CurrentBackBuffer()const;
     D3D12_CPU_DESCRIPTOR_HANDLE CurrentBackBufferView()const;
@@ -59,14 +59,16 @@ public:
     void ExecuteCommandList();
     void Flush();
 
+    void BuildAllGameObjects();
+    void DrawAllGameObjects();
+
 private:
     ShaderManager shaderManager;
     
     HWND mHWnd = nullptr;
 
-    // Set true to use 4X MSAA (�4.1.8).  The default is false.
-    bool      m4xMsaaState = false;    // 4X MSAA enabled
-    UINT      m4xMsaaQuality = 0;      // quality level of 4X MSAA
+    bool      m4xMsaaState = false;
+    UINT      m4xMsaaQuality = 0;
 
     UINT64 mFenceValue = 0;
 
@@ -109,9 +111,8 @@ private:
     DXGI_FORMAT mBackBufferFormat = DXGI_FORMAT_R8G8B8A8_UNORM;
     DXGI_FORMAT mDepthStencilFormat = DXGI_FORMAT_D24_UNORM_S8_UINT;
 
-    DirectX::XMFLOAT4X4 mWorld = MathHelper::Identity4x4();
-    DirectX::XMFLOAT4X4 mView = MathHelper::Identity4x4();
-    DirectX::XMFLOAT4X4 mProj = MathHelper::Identity4x4();
+    XMFLOAT4X4 mWorld = MathHelper::Identity4x4();
+    XMFLOAT4X4 mWorldViewProj = MathHelper::Identity4x4(); // tranposed
 
     float mTheta = 1.5f * DirectX::XM_PI;
     float mPhi = DirectX::XM_PIDIV4;
