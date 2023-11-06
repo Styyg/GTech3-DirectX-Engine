@@ -7,6 +7,8 @@
 #include "Rigidbody.h" 
 #include "Mesh.h" 
 
+#include "Engine.h"
+
 class GameObject
 {
 public:
@@ -26,17 +28,8 @@ public:
 	void SetupBuffers(ID3D12GraphicsCommandList* commandList);
 	void Draw(ID3D12GraphicsCommandList* commandList);
 
-private:
-	ID3D12PipelineState* m_PSO;
-	MeshGeometry* m_pGeo;
-public:
-	UploadBuffer<ObjectConstants>* mObjectCB = nullptr;
-	std::string mName;
-	std::unordered_map<Component::Type, Component*> mCmps;
+	//
 
-	Transform mTransform;
-	GameObject();
-	~GameObject();
 	void Render();
 	void update();
 	void AddCollider(Collider* collider);
@@ -44,4 +37,15 @@ public:
 	Collider* GetCollider();
 	//void AddMesh(Mesh mesh);
 	//void AddTrigger(Trigger trigger);
+
+	Transform mTransform;
+
+	UploadBuffer<ObjectConstants>* mObjectCB = nullptr;
+
+private:
+	ID3D12PipelineState* m_PSO;
+	MeshGeometry* m_pGeo;
+
+	std::string mName;
+	std::unordered_map<Component::Type, Component*> mCmps;
 };

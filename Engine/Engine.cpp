@@ -450,12 +450,12 @@ void Engine::BuildAllGameObjects()
 	obj1->CreateCB(mD3DDevice.Get());
 	obj1->SetGeo(mTriangleGeo.get());
 
-	GameObject* obj2 = new GameObject;
-	mgr->AddGameObject(obj2);
-	ID3D12PipelineState* obj2PSO = psoManager.GetOrCreatePSO(L"Obj2PSO", basePsoDesc, mD3DDevice.Get());
-	obj2->SetPSO(obj2PSO);
-	obj2->CreateCB(mD3DDevice.Get());
-	obj2->SetGeo(mTriangleGeo.get());
+	//GameObject* obj2 = new GameObject;
+	//mgr->AddGameObject(obj2);
+	//ID3D12PipelineState* obj2PSO = psoManager.GetOrCreatePSO(L"Obj2PSO", basePsoDesc, mD3DDevice.Get());
+	//obj2->SetPSO(obj2PSO);
+	//obj2->CreateCB(mD3DDevice.Get());
+	//obj2->SetGeo(mTriangleGeo.get());
 }
 
 void Engine::DrawAllGameObjects()
@@ -467,8 +467,6 @@ void Engine::DrawAllGameObjects()
 
 		ObjectConstants objConstants;
 		objConstants.WorldViewProj = mWorldViewProj;
-		//XMFLOAT4X4 m;
-		//XMStoreFloat4x4(&m, XMMatrixTranspose(XMLoadFloat4x4(&mWorldViewProj)));
 		obj->mObjectCB->CopyData(0, objConstants);
 
 		// Utilisez le PSO spécifique à l'objet
@@ -552,7 +550,6 @@ void Engine::BuildTriangleGeometry()
 	mTriangleGeo->DrawArgs["triangle"] = submesh;
 
 	mTriangleGeo->indexCount = submesh.IndexCount;
-
 }
 
 void Engine::InitD3D()
@@ -610,32 +607,30 @@ void Engine::Update()
 	Camera camera;
 	camera.Update();
 
-	XMMATRIX view = camera.GetViewMatrix(0, 0, -4);
+	float x = mRadius * sinf(mPhi) * cosf(mTheta);
+	float z = mRadius * sinf(mPhi) * sinf(mTheta);
+	float y = mRadius * cosf(mPhi);
+
+	//// temporary inputs to move the camera around the center
+	input.Update();
+	if (input.GetKeyState('Z'))mPhi += .01f;
+	if (input.GetKeyState('S'))mPhi -= .01f;
+	if (input.GetKeyState('Q'))mTheta += .01f;
+	if (input.GetKeyState('D'))mTheta -= .01f;
+
+	XMMATRIX view = camera.GetViewMatrix(x, y, z);
 	XMMATRIX proj = camera.GetProjectionMatrix(800, 600);
 
-	// temporary inputs to move the camera around the center
-	// input.Update();
-	// if (input.GetKeyState('Z'))
-	// 	mPhi += .01f;
-	
-	// if (input.GetKeyState('S'))
-	// 	mPhi -= .01f;
 
-	// if (input.GetKeyState('Q'))
-	// 	mTheta += .01f;
+	//// Build the view matrix.
+	//XMVECTOR pos = XMVectorSet(x, y, z, 1.0f);
+	//XMVECTOR target = XMVectorZero();
+	//XMVECTOR up = XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f);
 
-	// if (input.GetKeyState('D'))
-	// 	mTheta -= .01f;
+	//XMMATRIX view = XMMatrixLookAtLH(pos, target, up);
+	//XMStoreFloat4x4(&mView, view);
 
-	// // Build the view matrix.
-	// XMVECTOR pos = XMVectorSet(x, y, z, 1.0f);
-	// XMVECTOR target = XMVectorZero();
-	// XMVECTOR up = XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f);
-
-	// XMMATRIX view = XMMatrixLookAtLH(pos, target, up);
-	// XMStoreFloat4x4(&mView, view);
-
-	// XMMATRIX proj = XMMatrixPerspectiveFovLH(0.25f * MathHelper::Pi, 800/600.0f, 0.5f, 1000.0f);
+	//XMMATRIX proj = XMMatrixPerspectiveFovLH(0.25f * MathHelper::Pi, 800/600.0f, 0.5f, 1000.0f);
 
 	// Mise à jour de la matrice de vue et de projection dans le shader
 	XMMATRIX world = XMLoadFloat4x4(&mWorld);
