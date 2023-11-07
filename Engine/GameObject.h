@@ -18,7 +18,7 @@ public:
 	void AddComponent(Component component);
 
 	// CB
-	void CreateCB(ID3D12Device* pDevice, Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> CbvHeap);
+	void CreateCB(ID3D12Device* pDevice);
 
 	void SetGeo(MeshGeometry* pGeo) { m_pGeo = pGeo; }
 	// PSO
@@ -42,6 +42,7 @@ public:
 	Transform mTransform;
 
 	UploadBuffer<ObjectConstants>* mObjectCB = nullptr;
+	UploadBuffer<PassConstants>* mPassConstants = nullptr;
 
 private:
 	ID3D12PipelineState* m_PSO;
