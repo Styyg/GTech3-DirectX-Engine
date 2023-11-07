@@ -9,6 +9,7 @@ using namespace std;
 
 Engine::Engine(HWND hWnd) : mHWnd(hWnd), input(hWnd)
 {
+	mGameTimer.Reset();
 	InitD3D();
 	SynchroProcess();
 	SetMSAA();
@@ -30,7 +31,8 @@ Engine::Engine(HWND hWnd) : mHWnd(hWnd), input(hWnd)
 	Flush();
 	// aditionnal free upload buffer
 
-	BuildAllGameObjects();
+	BuildAllGameObjects(); 
+	
 }
 
 Engine::~Engine()
@@ -325,7 +327,7 @@ void Engine::CreateDescriptorHeaps()
 
 	// config of CBV desc heap
 	D3D12_DESCRIPTOR_HEAP_DESC cbvHeapDesc;
-	cbvHeapDesc.NumDescriptors = 10;
+	cbvHeapDesc.NumDescriptors = 1000;
 	cbvHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
 	cbvHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
 	cbvHeapDesc.NodeMask = 0;
@@ -424,8 +426,8 @@ void Engine::BuildAllGameObjects()
 	basePsoDesc.DepthStencilState = CD3DX12_DEPTH_STENCIL_DESC(D3D12_DEFAULT);
 
 	// Formats de rendu
-	basePsoDesc.RTVFormats[0] = DXGI_FORMAT_R8G8B8A8_UNORM;
-	basePsoDesc.DSVFormat = DXGI_FORMAT_D24_UNORM_S8_UINT;
+	basePsoDesc.RTVFormats[0] = mBackBufferFormat;
+	basePsoDesc.DSVFormat = mDepthStencilFormat;
 	basePsoDesc.SampleDesc.Count = 1;
 	basePsoDesc.SampleDesc.Quality = 0;
 
@@ -450,12 +452,12 @@ void Engine::BuildAllGameObjects()
 	obj1->CreateCB(mD3DDevice.Get());
 	obj1->SetGeo(mTriangleGeo.get());
 
-	//GameObject* obj2 = new GameObject;
-	//mgr->AddGameObject(obj2);
-	//ID3D12PipelineState* obj2PSO = psoManager.GetOrCreatePSO(L"Obj2PSO", basePsoDesc, mD3DDevice.Get());
-	//obj2->SetPSO(obj2PSO);
-	//obj2->CreateCB(mD3DDevice.Get());
-	//obj2->SetGeo(mTriangleGeo.get());
+	GameObject* obj2 = new GameObject;
+	mgr->AddGameObject(obj2);
+	ID3D12PipelineState* obj2PSO = psoManager.GetOrCreatePSO(L"Obj2PSO", basePsoDesc, mD3DDevice.Get());
+	obj2->SetPSO(obj2PSO);
+	obj2->CreateCB(mD3DDevice.Get());
+	obj2->SetGeo(mTriangleGeo.get());
 }
 
 void Engine::DrawAllGameObjects()
@@ -463,12 +465,8 @@ void Engine::DrawAllGameObjects()
 	Manager* mgr = Manager::GetInstance();
 	list<GameObject*>& gameObjects = mgr->GetGameObjects();
 	
+	float i = 0.1f;
 	for (GameObject* obj : gameObjects) {
-
-		ObjectConstants objConstants;
-		objConstants.WorldViewProj = mWorldViewProj;
-		obj->mObjectCB->CopyData(0, objConstants);
-
 		// Utilisez le PSO spécifique à l'objet
 		ID3D12PipelineState* pso = obj->GetPSO();
 		if (pso != nullptr) {
@@ -507,7 +505,11 @@ void Engine::BuildConstantBuffers()
 void Engine::BuildRootSignature()
 {
 	CD3DX12_ROOT_PARAMETER slotRootParameter[1];
-	 	slotRootParameter[0].InitAsConstantBufferView(0);
+	 slotRootParameter[0].InitAsConstantBufferView(0);
+
+	 //CD3DX12_DESCRIPTOR_RANGE cbvTable1;
+	 //cbvTable1.Init(D3D12_DESCRIPTOR_RANGE_TYPE_CBV, 1, 1);
+	 //slotRootParameter[1].InitAsDescriptorTable(1, &cbvTable1);
 
 	// A root signature is an array of root parameters.
 	CD3DX12_ROOT_SIGNATURE_DESC rootSigDesc(1, slotRootParameter, 0, nullptr, D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);
@@ -606,20 +608,47 @@ void Engine::Update()
 {
 	Camera camera;
 	camera.Update();
+	input.Update();
+	mGameTimer.Tick();
+
+	//// temporary inputs to move the camera around the center
+	if (input.GetKeyState('Z')) mPhi += .01f;
+	if (input.GetKeyState('S')) mPhi -= .01f;
+	if (input.GetKeyState('Q')) mTheta += .01f;
+	if (input.GetKeyState('D')) mTheta -= .01f;
+	if (input.GetKeyState('A')) mRadius += .001f;
+	if (input.GetKeyState('E')) mRadius -= .001f;
 
 	float x = mRadius * sinf(mPhi) * cosf(mTheta);
 	float z = mRadius * sinf(mPhi) * sinf(mTheta);
 	float y = mRadius * cosf(mPhi);
 
-	//// temporary inputs to move the camera around the center
-	input.Update();
-	if (input.GetKeyState('Z'))mPhi += .01f;
-	if (input.GetKeyState('S'))mPhi -= .01f;
-	if (input.GetKeyState('Q'))mTheta += .01f;
-	if (input.GetKeyState('D'))mTheta -= .01f;
+	mView = camera.GetViewMatrix(x, y, z);
+	mProj = camera.GetProjectionMatrix(800, 600);
 
-	XMMATRIX view = camera.GetViewMatrix(x, y, z);
-	XMMATRIX proj = camera.GetProjectionMatrix(800, 600);
+	Manager* mgr = Manager::GetInstance();
+
+	list<GameObject*>& gameObjects = mgr->GetGameObjects();
+
+	float i = 0.1f;
+	for (GameObject* obj : gameObjects) {
+		ObjectConstants objConstants;
+		obj->mTransform.SetPosition(i, 0, 0);
+		obj->mTransform.RotateYaw(10.0f * mGameTimer.TotalTime());
+
+		OutputDebugString(std::to_wstring(mGameTimer.DeltaTime()).c_str() + '\n');
+		i += 1.5f;
+		//XMFLOAT4X4 world = obj->mTransform.mWorldMatrix;
+
+		XMMATRIX world = XMLoadFloat4x4(&obj->mTransform.mWorldMatrix);
+		XMMATRIX worldViewProj = world * mView * mProj;
+
+		//XMStoreFloat4x4(&mWorldViewProj, XMMatrixTranspose(worldViewProj));
+		XMStoreFloat4x4(&objConstants.WorldViewProj, XMMatrixTranspose(worldViewProj));
+		//objConstants.WorldViewProj = mWorldViewProj;
+		obj->mObjectCB->CopyData(0, objConstants);
+	}
+
 
 
 	//// Build the view matrix.
@@ -633,9 +662,9 @@ void Engine::Update()
 	//XMMATRIX proj = XMMatrixPerspectiveFovLH(0.25f * MathHelper::Pi, 800/600.0f, 0.5f, 1000.0f);
 
 	// Mise à jour de la matrice de vue et de projection dans le shader
-	XMMATRIX world = XMLoadFloat4x4(&mWorld);
-	XMMATRIX worldViewProj = world * view * proj;
-	XMStoreFloat4x4(&mWorldViewProj, XMMatrixTranspose(worldViewProj));
+	//XMMATRIX world = XMLoadFloat4x4(&mWorld);
+	//XMMATRIX worldViewProj = world * view * proj;
+	//XMStoreFloat4x4(&mWorldViewProj, XMMatrixTranspose(worldViewProj));
 
 	//ObjectConstants objConstants;
 	//XMStoreFloat4x4(&objConstants.WorldViewProj, XMMatrixTranspose(worldViewProj));

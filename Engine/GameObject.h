@@ -23,6 +23,7 @@ public:
 	void SetGeo(MeshGeometry* pGeo) { m_pGeo = pGeo; }
 	// PSO
 	void SetPSO(ID3D12PipelineState* pso);
+
 	ID3D12PipelineState* GetPSO() const;
 
 	void SetupBuffers(ID3D12GraphicsCommandList* commandList);
@@ -31,7 +32,7 @@ public:
 	//
 
 	void Render();
-	void update();
+	void Update();
 	void AddCollider(Collider* collider);
 	void AddRigidbody(Rigidbody* rigidbody);
 	Collider* GetCollider();
@@ -41,6 +42,7 @@ public:
 	Transform mTransform;
 
 	UploadBuffer<ObjectConstants>* mObjectCB = nullptr;
+	UploadBuffer<PassConstants>* mPassConstants = nullptr;
 
 private:
 	ID3D12PipelineState* m_PSO;
