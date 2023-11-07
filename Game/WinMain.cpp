@@ -1,4 +1,5 @@
 #include "Engine.h"
+#include "Game.h"
 #include <sstream>
 
 LRESULT CALLBACK WindowProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
@@ -78,27 +79,10 @@ int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 
 	try
 	{
-		Engine appEngine(hWnd);
+		Game theGame(hWnd);
 
-		MSG msg = { 0 };
-
-		while (msg.message != WM_QUIT)
-		{
-			// If there are Window messages then process them.
-			if (PeekMessage(&msg, 0, 0, 0, PM_REMOVE))
-			{
-				TranslateMessage(&msg);
-				DispatchMessage(&msg);
-			}
-			// Otherwise, do animation/game stuff.
-			else
-			{
-				appEngine.Update();
-				appEngine.Draw();
-			}
-		}
-
-		return (int)msg.wParam;
+		// Start the game loop
+		theGame.Run();
 	}
 	catch (DxException& e)
 	{
