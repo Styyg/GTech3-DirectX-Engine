@@ -636,7 +636,6 @@ void Engine::Update()
 		obj->mTransform.SetPosition(i, 0, 0);
 		obj->mTransform.RotateYaw(10.0f * mGameTimer.TotalTime());
 
-		OutputDebugString(std::to_wstring(mGameTimer.DeltaTime()).c_str() + '\n');
 		i += 1.5f;
 		//XMFLOAT4X4 world = obj->mTransform.mWorldMatrix;
 
