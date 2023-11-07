@@ -79,10 +79,10 @@ int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 
 	try
 	{
-		Game theGame(hWnd);
+		Game game(hWnd);
 
 		// Start the game loop
-		theGame.Run();
+		game.Run();
 	}
 	catch (DxException& e)
 	{

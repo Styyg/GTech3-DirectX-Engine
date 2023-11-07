@@ -1,13 +1,8 @@
 #include "Game.h"
 
-Game::Game(HWND hWnd) : engine(hWnd) 
-{
+Game::Game(HWND hWnd) : engine(hWnd) {}
 
-}
-
-Game::~Game()
-{
-}
+Game::~Game() {}
 
 void Game::Run()
 {
@@ -34,8 +29,6 @@ void Game::Update()
 {
     // Update game logic
     engine.Update();
-
-
 }
 
 void Game::Draw()
