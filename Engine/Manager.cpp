@@ -22,17 +22,21 @@ void Manager::ClearGameObjects()
 
 void Manager::Update()
 {
-	float i = 0.1f;
-	for (GameObject* obj : gameObjects) {
+	//float i = 0.1f;
+	//for (GameObject* obj : gameObjects) {
 
-		// Update Object CBs
-		ObjectConstants objConstants;
-		obj->mTransform.SetPosition(i, 0, 0);
-		i += .5f;
-		XMMATRIX world = XMLoadFloat4x4(&obj->mTransform.mWorldMatrix);
-		XMStoreFloat4x4(&objConstants.WorldViewProj, XMMatrixTranspose(world));
-		//objConstants.WorldViewProj = mWorldViewProj;
-		obj->mObjectCB->CopyData(0, objConstants);
+	//	ObjectConstants objConstants;
+	//	obj->mTransform.SetPosition(i, 0, 0);
+	//	i += 1.0f;
+	//	//XMFLOAT4X4 world = obj->mTransform.mWorldMatrix;
+
+	//	XMMATRIX world = XMLoadFloat4x4(&obj->mTransform.mWorldMatrix);
+	//	XMMATRIX worldViewProj = world * mView * mProj;
+
+	//	//XMStoreFloat4x4(&mWorldViewProj, XMMatrixTranspose(worldViewProj));
+	//	XMStoreFloat4x4(&objConstants.WorldViewProj, XMMatrixTranspose(worldViewProj));
+	//	//objConstants.WorldViewProj = mWorldViewProj;
+	//	obj->mObjectCB->CopyData(0, objConstants);
 
 		//obj->Update();
 
@@ -44,7 +48,7 @@ void Manager::Update()
 		//XMStoreFloat4x4(&passConstants.ViewProj, XMMatrixTranspose(viewProj));
 
 		//obj->mPassConstants->CopyData(0, passConstants);
-	}
+	//}
 }
 
 list<GameObject*>& Manager::GetGameObjects()

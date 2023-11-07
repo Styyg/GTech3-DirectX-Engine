@@ -132,6 +132,8 @@ private:
 
     XMFLOAT4X4 mWorld = MathHelper::Identity4x4();
     XMFLOAT4X4 mWorldViewProj = MathHelper::Identity4x4(); // tranposed
+    XMMATRIX mView;
+    XMMATRIX mProj;
 
     float mTheta = 1.5f * DirectX::XM_PI;
     float mPhi = DirectX::XM_PIDIV4;

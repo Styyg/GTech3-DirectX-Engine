@@ -9,6 +9,7 @@ using namespace std;
 
 Engine::Engine(HWND hWnd) : mHWnd(hWnd), input(hWnd)
 {
+	mGameTimer.Reset();
 	InitD3D();
 	SynchroProcess();
 	SetMSAA();
@@ -30,7 +31,8 @@ Engine::Engine(HWND hWnd) : mHWnd(hWnd), input(hWnd)
 	Flush();
 	// aditionnal free upload buffer
 
-	BuildAllGameObjects();
+	BuildAllGameObjects(); 
+	
 }
 
 Engine::~Engine()
@@ -465,15 +467,6 @@ void Engine::DrawAllGameObjects()
 	
 	float i = 0.1f;
 	for (GameObject* obj : gameObjects) {
-
-		ObjectConstants objConstants;    
-		obj->mTransform.SetPosition(i, 0, 0);
-		i += .5f;
-		XMFLOAT4X4 world = obj->mTransform.mWorldMatrix;
-		XMStoreFloat4x4(&objConstants.WorldViewProj, XMMatrixTranspose(XMLoadFloat4x4(&mWorldViewProj) * XMLoadFloat4x4(&world)));
-		objConstants.WorldViewProj = mWorldViewProj;
-		obj->mObjectCB->CopyData(0, objConstants);
-
 		// Utilisez le PSO spécifique à l'objet
 		ID3D12PipelineState* pso = obj->GetPSO();
 		if (pso != nullptr) {
@@ -616,6 +609,7 @@ void Engine::Update()
 	Camera camera;
 	camera.Update();
 	input.Update();
+	mGameTimer.Tick();
 
 	//// temporary inputs to move the camera around the center
 	if (input.GetKeyState('Z')) mPhi += .01f;
@@ -629,10 +623,31 @@ void Engine::Update()
 	float z = mRadius * sinf(mPhi) * sinf(mTheta);
 	float y = mRadius * cosf(mPhi);
 
-	XMMATRIX view = camera.GetViewMatrix(x, y, z);
-	//XMMATRIX proj = camera.GetProjectionMatrix(800, 600);
+	mView = camera.GetViewMatrix(x, y, z);
+	mProj = camera.GetProjectionMatrix(800, 600);
 
-	Manager::GetInstance()->Update();
+	Manager* mgr = Manager::GetInstance();
+
+	list<GameObject*>& gameObjects = mgr->GetGameObjects();
+
+	float i = 0.1f;
+	for (GameObject* obj : gameObjects) {
+		ObjectConstants objConstants;
+		obj->mTransform.SetPosition(i, 0, 0);
+		obj->mTransform.RotateYaw(10.0f * mGameTimer.TotalTime());
+
+		OutputDebugString(std::to_wstring(mGameTimer.DeltaTime()).c_str() + '\n');
+		i += 1.5f;
+		//XMFLOAT4X4 world = obj->mTransform.mWorldMatrix;
+
+		XMMATRIX world = XMLoadFloat4x4(&obj->mTransform.mWorldMatrix);
+		XMMATRIX worldViewProj = world * mView * mProj;
+
+		//XMStoreFloat4x4(&mWorldViewProj, XMMatrixTranspose(worldViewProj));
+		XMStoreFloat4x4(&objConstants.WorldViewProj, XMMatrixTranspose(worldViewProj));
+		//objConstants.WorldViewProj = mWorldViewProj;
+		obj->mObjectCB->CopyData(0, objConstants);
+	}
 
 
 
