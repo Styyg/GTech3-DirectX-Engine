@@ -1,24 +1,20 @@
 #pragma once
 #include "GameTimer.h"
-#include "Transform.h"
-#include "Input.h"
-//#include "Collider.h"
-
-
-class Entity
-{
-private:
-	Transform* mTransform;
-public:
-	Entity();
-	~Entity();
-
-};
+#include "Engine.h"
+#include <sstream>
 
 class Game
 {
-	float mTimer = mGameTimer.TotalTime();
-	GameTimer mGameTimer;
-	void Update();
-};
+public:
+	Game(HWND hWnd);
+	~Game();
 
+	void Run();
+
+private:
+	Engine engine;
+    GameTimer mGameTimer;
+    float mTimer;
+	void Update();
+	void Draw();
+};
