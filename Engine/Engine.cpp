@@ -9,7 +9,6 @@ using namespace std;
 
 Engine::Engine(HWND hWnd) : mHWnd(hWnd), input(hWnd)
 {
-	mGameTimer.Reset();
 	InitD3D();
 	SynchroProcess();
 	SetMSAA();
@@ -21,7 +20,6 @@ Engine::Engine(HWND hWnd) : mHWnd(hWnd), input(hWnd)
 
 	//RenderTargetView();
 	//DescribeDepthStencilBuffer();
-	BuildConstantBuffers();
 	BuildRootSignature();
 
 	ResetCommandList();
@@ -445,17 +443,18 @@ void Engine::BuildAllGameObjects()
 
 	Manager* mgr = Manager::GetInstance();
 
-	GameObject* obj1 = new GameObject;
-	mgr->AddGameObject(obj1);
-	ID3D12PipelineState* obj1PSO = psoManager.GetOrCreatePSO(L"Obj1PSO", basePsoDesc, mD3DDevice.Get());
-	obj1->SetPSO(obj1PSO);
-	obj1->CreateCB(mD3DDevice.Get());
-	obj1->SetGeo(mTriangleGeo.get());
+	GameObject* cube = new GameObject;
+	mgr->AddGameObject(cube);
 
 	GameObject* obj2 = new GameObject;
 	mgr->AddGameObject(obj2);
-	ID3D12PipelineState* obj2PSO = psoManager.GetOrCreatePSO(L"Obj2PSO", basePsoDesc, mD3DDevice.Get());
-	obj2->SetPSO(obj2PSO);
+
+	ID3D12PipelineState* objPSO = psoManager.GetOrCreatePSO(L"Obj1PSO", basePsoDesc, mD3DDevice.Get());
+	cube->SetPSO(objPSO);
+	cube->CreateCB(mD3DDevice.Get());
+	cube->SetGeo(mTriangleGeo.get());
+
+	obj2->SetPSO(objPSO);
 	obj2->CreateCB(mD3DDevice.Get());
 	obj2->SetGeo(mTriangleGeo.get());
 }
@@ -482,24 +481,6 @@ void Engine::DrawAllGameObjects()
 		// Assumer que chaque GameObject sait comment dessiner lui-même
 		obj->Draw(mCommandList.Get());
 	}
-}
-
-void Engine::BuildConstantBuffers()
-{
-	//mObjectCB = std::make_unique<UploadBuffer<ObjectConstants>>(mD3DDevice.Get(), 1, true);
-
-	//UINT objCBByteSize = d3dUtil::CalcConstantBufferByteSize(sizeof(ObjectConstants));
-
-	//D3D12_GPU_VIRTUAL_ADDRESS cbAddress = mObjectCB->Resource()->GetGPUVirtualAddress();
-	// Offset to the ith object constant buffer in the buffer.
-	//int boxCBufIndex = 0;
-	//cbAddress += boxCBufIndex * objCBByteSize;
-
-	//D3D12_CONSTANT_BUFFER_VIEW_DESC cbvDesc;
-	//cbvDesc.BufferLocation = cbAddress;
-	//cbvDesc.SizeInBytes = d3dUtil::CalcConstantBufferByteSize(sizeof(ObjectConstants));
-
-	//mD3DDevice->CreateConstantBufferView(&cbvDesc, mCbvHeap->GetCPUDescriptorHandleForHeapStart());
 }
 
 void Engine::BuildRootSignature()
@@ -609,7 +590,6 @@ void Engine::Update()
 	Camera camera;
 	camera.Update();
 	input.Update();
-	mGameTimer.Tick();
 
 	//// temporary inputs to move the camera around the center
 	if (input.GetKeyState('Z')) mPhi += .01f;
@@ -634,9 +614,9 @@ void Engine::Update()
 	for (GameObject* obj : gameObjects) {
 		ObjectConstants objConstants;
 		obj->mTransform.SetPosition(i, 0, 0);
-		obj->mTransform.RotateYaw(10.0f * mGameTimer.TotalTime());
+		//obj->mTransform.RotateYaw(10.0f * gt.TotalTime());
+		obj->mTransform.RotateYaw(10.0f);
 
-		OutputDebugString(std::to_wstring(mGameTimer.DeltaTime()).c_str() + '\n');
 		i += 1.5f;
 		//XMFLOAT4X4 world = obj->mTransform.mWorldMatrix;
 

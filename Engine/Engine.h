@@ -63,7 +63,6 @@ public:
 
     void RenderTargetView();
     void DescribeDepthStencilBuffer();
-    void BuildConstantBuffers();
     void BuildRootSignature();
     void BuildTriangleGeometry();
     
@@ -140,7 +139,6 @@ private:
     float mRadius = 5.0f;
 
     Input input;
-    GameTimer mGameTimer;
 
     int mClientWidth = 800;
     int mClientHeight = 600;
