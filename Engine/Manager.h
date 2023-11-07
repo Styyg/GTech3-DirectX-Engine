@@ -14,6 +14,7 @@ public:
     void AddGameObject(GameObject* obj);
     //void RemoveGameObject(const GameObject& obj);
     void ClearGameObjects();
+    void Update();
 
     list<GameObject*>& GetGameObjects();
 
