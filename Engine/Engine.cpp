@@ -536,7 +536,7 @@ void Engine::BuildTriangleGeometry()
 	ExecuteCommandList();
 }
 
-void Engine::CreateCube(float width, float height, float depth, float x, float y, float z)
+GameObject* Engine::CreateCube(float width, float height, float depth, float x, float y, float z)
 {
 	ResetCommandList();
 
@@ -581,6 +581,8 @@ void Engine::CreateCube(float width, float height, float depth, float x, float y
 	gameObject->CreateCB(mD3DDevice.Get());
 	gameObject->SetGeo(geo);
 	gameObject->mTransform.SetPosition(x, y, z);
+
+	return gameObject;
 }
 
 void Engine::InitD3D()
