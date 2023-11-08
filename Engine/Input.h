@@ -19,15 +19,18 @@ public:
 	void Update();
 	KeyState GetKeyState(int);
 	POINT GetMouseMove();
-protected:
-
+	void EnableMouseCapture();
+	void DisableMouseCapture();
+	bool IsCapturingMouse() { return mCaptureMouse; }
 
 private:
 	HWND mHWnd = nullptr;
 	std::unordered_map<int, KeyState> mKeyStates;
 	POINT mLastMousePos;
 	POINT mMouseMove;
+	bool mCaptureMouse = false;
 
 	void CaptureMousePos();
+	void CenterCursor();
 };
 

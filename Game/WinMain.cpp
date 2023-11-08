@@ -10,24 +10,24 @@ LRESULT CALLBACK WindowProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 	case WM_CLOSE:
 		PostQuitMessage(0);
 		break;
-	case WM_KEYDOWN:
-		if (wParam == 'F')
-		{
-			SetWindowText(hWnd, L"Ta mere");
-		}
-		break;
-	case WM_KEYUP:
-		if (wParam == 'F')
-		{
-			SetWindowText(hWnd, L"Game Window");
-		}
-		break;
-	case WM_LBUTTONDOWN:
-		const POINTS pt = MAKEPOINTS(lParam);
-		std::wstringstream oss;
-		oss << "(" << pt.x << "," << pt.y << ")";
-		SetWindowText(hWnd, oss.str().c_str());
-		break;
+	//case WM_KEYDOWN:
+	//	if (wParam == 'F')
+	//	{
+	//		SetWindowText(hWnd, L"Hehe");
+	//	}
+	//	break;
+	//case WM_KEYUP:
+	//	if (wParam == 'F')
+	//	{
+	//		SetWindowText(hWnd, L"Game Window");
+	//	}
+	//	break;
+	//case WM_LBUTTONDOWN:
+	//	const POINTS pt = MAKEPOINTS(lParam);
+	//	std::wstringstream oss;
+	//	oss << "(" << pt.x << "," << pt.y << ")";
+	//	SetWindowText(hWnd, oss.str().c_str());
+	//	break;
 	}
 
 	return DefWindowProc(hWnd, msg, wParam, lParam);
