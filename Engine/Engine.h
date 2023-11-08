@@ -67,7 +67,7 @@ public:
     void BuildRootSignature();
     void BuildTriangleGeometry();
 
-    void CreateCube(float width = 1.0f, float height = 1.0f, float depth = 1.0f, float x = 0.0f, float y = 0.0f, float z = 0.0f);
+    GameObject* CreateCube(float width = 1.0f, float height = 1.0f, float depth = 1.0f, float x = 0.0f, float y = 0.0f, float z = 0.0f);
     
     void FlushCommandQueue();
 
