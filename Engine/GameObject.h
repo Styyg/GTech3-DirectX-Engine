@@ -45,7 +45,7 @@ public:
 	UploadBuffer<ObjectConstants>* mObjectCB = nullptr;
 	UploadBuffer<PassConstants>* mPassConstants = nullptr;
 
-private:
+protected:
 	ID3D12PipelineState* m_PSO;
 	MeshGeometry* m_pGeo;
 

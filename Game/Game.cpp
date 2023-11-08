@@ -1,4 +1,5 @@
 #include "Game.h"
+#include "GameObject.h"
 
 Game::Game(HWND hWnd) : engine(hWnd)
 {
@@ -29,30 +30,31 @@ void Game::Run()
     }
 }
 
-//bool temp = false;
+
 void Game::Update()
 {
     mGameTimer.Tick();
     // Update game logic
     engine.Update(mGameTimer);
-    /*if (temp == false)
-    {
-        engine.CreateCube(0.1, 0.1, 0.1, 1, 0, 0);
-        engine.CreateCube(0.1, 0.1, 0.1, -1, 0, 0);
-        engine.CreateCube(0.1, 0.1, 0.1, 1, 1, 1);
-        temp = true;
-    }*/
     // create new ennemy each 5sec
-    if (mTimer + 0.1 < mGameTimer.TotalTime())
+    if (mTimer + 1 < mGameTimer.TotalTime())
     {
         float posX = rand() % 40 - 20;
         float posY = rand() % 40 - 20;
-        float posZ = rand() % 10 + 20;
+        float posZ = rand() % 30 + 15;
         //spawn an ennemy
-        engine.CreateCube(1.0, 1.0, 1.0, posX, posY, posZ);
-        std::wstring str = std::to_wstring(posX);
-        OutputDebugString(str.c_str());
+        GameObject* mGameObject = engine.CreateCube(1.0, 1.0, 1.0, posX, posY, posZ);
+        mGameObjectsList.push_back(mGameObject);
+        /*std::wstring str = std::to_wstring(posZ);
+        OutputDebugString(str.c_str());*/
         mTimer = mGameTimer.TotalTime();
+    }
+    for (int i = 0; i < mGameObjectsList.size(); i++)
+    {
+        float move = 0.05*cosf(mGameTimer.TotalTime() * 0.8);
+        float move2 = 0.05 *sinf(mGameTimer.TotalTime() * 0.8);
+        mGameObjectsList[i]->mTransform.TranslateInWorld(move, move2, 0); 
+        /*mGameObjectsList[i]->mTransform.SetPosition(move, move2, 6);*/
     }
 }
 

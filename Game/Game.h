@@ -13,6 +13,7 @@ public:
 private:
 	Engine engine;
     GameTimer mGameTimer;
+	vector<GameObject*> mGameObjectsList;
     float mTimer;
 	void Update();
 	void Draw();

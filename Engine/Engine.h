@@ -143,7 +143,7 @@ private:
     D3D12_GRAPHICS_PIPELINE_STATE_DESC mBasePsoDesc = {};
 
     float mTheta = 1.5f * DirectX::XM_PI;
-    float mPhi = DirectX::XM_PIDIV4;
+    float mPhi = DirectX::XM_PIDIV2;
     float mRadius = 5.0f;
 
     Input input;
