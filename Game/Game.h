@@ -1,5 +1,4 @@
 #pragma once
-
 #include "Engine.h"
 #include <sstream>
 
@@ -13,7 +12,8 @@ public:
 
 private:
 	Engine engine;
-
+    GameTimer mGameTimer;
+    float mTimer;
 	void Update();
 	void Draw();
 };

@@ -1,6 +1,10 @@
 #include "Game.h"
 
-Game::Game(HWND hWnd) : engine(hWnd) {}
+Game::Game(HWND hWnd) : engine(hWnd)
+{
+    mGameTimer.Reset();
+    mTimer = mGameTimer.TotalTime();
+}
 
 Game::~Game() {}
 
@@ -28,6 +32,7 @@ void Game::Run()
 bool temp = false;
 void Game::Update()
 {
+    mGameTimer.Tick();
     // Update game logic
     engine.Update();
     if (temp == false)
@@ -36,6 +41,12 @@ void Game::Update()
         engine.CreateCube(0.1, 0.1, 0.1, -1, 0, 0);
         engine.CreateCube(0.1, 0.1, 0.1, 1, 1, 1);
         temp = true;
+    }
+    // create new ennemy each 5sec
+    if (mTimer + 5 < mGameTimer.TotalTime())
+    {
+        //spawn an ennemy
+        mTimer = mGameTimer.TotalTime();
     }
 }
 

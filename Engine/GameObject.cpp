@@ -25,6 +25,7 @@ void GameObject::AddRigidbody(Rigidbody* rigidbody)
 	mCmps.emplace(Component::RIGIDBODY, rigidbody);
 }
 
+
 Collider* GameObject::GetCollider() {
     // Utilise la fonction find pour chercher le composant Collider dans mCmps.
     auto it = mCmps.find(Component::COLLIDER); 
@@ -38,6 +39,22 @@ Collider* GameObject::GetCollider() {
     else {
         // Le composant Collider n'est pas trouv�, renvoie nullptr.
         return nullptr;
+    }
+}
+
+bool GameObject::HasCollider() {
+    // Utilise la fonction find pour chercher le composant Collider dans mCmps.
+    auto it = mCmps.find(Component::COLLIDER);
+
+    // V�rifie si le composant Collider est trouv�.
+    if (it != mCmps.end()) {
+        // Si le composant Collider est trouv�, renvoie true.
+        //return (Collider*)c;
+        return true;
+    }
+    else {
+        // Le composant Collider n'est pas trouv�, renvoie false.
+        return false;
     }
 }
 
