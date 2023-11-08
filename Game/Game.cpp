@@ -25,10 +25,18 @@ void Game::Run()
     }
 }
 
+bool temp = false;
 void Game::Update()
 {
     // Update game logic
     engine.Update();
+    if (temp == false)
+    {
+        engine.CreateCube(0.1, 0.1, 0.1, 1, 0, 0);
+        engine.CreateCube(0.1, 0.1, 0.1, -1, 0, 0);
+        engine.CreateCube(0.1, 0.1, 0.1, 1, 1, 1);
+        temp = true;
+    }
 }
 
 void Game::Draw()

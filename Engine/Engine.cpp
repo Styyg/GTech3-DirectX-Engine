@@ -1,4 +1,5 @@
 #include "Engine.h"
+#include "GameObject.h"
 #include <sstream>
 
 #include "Manager.h"
@@ -22,10 +23,10 @@ Engine::Engine(HWND hWnd) : mHWnd(hWnd), input(hWnd)
 	//DescribeDepthStencilBuffer();
 	BuildRootSignature();
 
-	ResetCommandList();
+	//ResetCommandList();
 	BuildTriangleGeometry();
-	CloseCommandeList();
-	ExecuteCommandList();
+	//CloseCommandeList();
+	//ExecuteCommandList();
 	Flush();
 	// aditionnal free upload buffer
 
@@ -389,6 +390,7 @@ void Engine::Flush()
 	}
 }
 
+//void Engine::BuildPSO()
 void Engine::BuildAllGameObjects()
 {
 	// Shader
@@ -407,39 +409,33 @@ void Engine::BuildAllGameObjects()
 	ComPtr<ID3DBlob> vertexShaderByteCode = vertexShader->GetShaderByteCode();
 	ComPtr<ID3DBlob> pixelShaderByteCode = pixelShader->GetShaderByteCode();
 
-	// Generic PSO
-
-	PSOManager psoManager;
-
-	D3D12_GRAPHICS_PIPELINE_STATE_DESC basePsoDesc = {};
-
 	// Shaders
-	basePsoDesc.VS = { reinterpret_cast<BYTE*>(vertexShaderByteCode->GetBufferPointer()), vertexShaderByteCode->GetBufferSize() };
-	basePsoDesc.PS = { reinterpret_cast<BYTE*>(pixelShaderByteCode->GetBufferPointer()), pixelShaderByteCode->GetBufferSize() };
+	mBasePsoDesc.VS = { reinterpret_cast<BYTE*>(vertexShaderByteCode->GetBufferPointer()), vertexShaderByteCode->GetBufferSize() };
+	mBasePsoDesc.PS = { reinterpret_cast<BYTE*>(pixelShaderByteCode->GetBufferPointer()), pixelShaderByteCode->GetBufferSize() };
 
 	// États par défaut pour le reste du PSO
-	basePsoDesc.BlendState = CD3DX12_BLEND_DESC(D3D12_DEFAULT);
-	basePsoDesc.SampleMask = UINT_MAX;
-	basePsoDesc.RasterizerState = CD3DX12_RASTERIZER_DESC(D3D12_DEFAULT);
-	basePsoDesc.DepthStencilState = CD3DX12_DEPTH_STENCIL_DESC(D3D12_DEFAULT);
+	mBasePsoDesc.BlendState = CD3DX12_BLEND_DESC(D3D12_DEFAULT);
+	mBasePsoDesc.SampleMask = UINT_MAX;
+	mBasePsoDesc.RasterizerState = CD3DX12_RASTERIZER_DESC(D3D12_DEFAULT);
+	mBasePsoDesc.DepthStencilState = CD3DX12_DEPTH_STENCIL_DESC(D3D12_DEFAULT);
 
 	// Formats de rendu
-	basePsoDesc.RTVFormats[0] = mBackBufferFormat;
-	basePsoDesc.DSVFormat = mDepthStencilFormat;
-	basePsoDesc.SampleDesc.Count = 1;
-	basePsoDesc.SampleDesc.Quality = 0;
+	mBasePsoDesc.RTVFormats[0] = mBackBufferFormat;
+	mBasePsoDesc.DSVFormat = mDepthStencilFormat;
+	mBasePsoDesc.SampleDesc.Count = 1;
+	mBasePsoDesc.SampleDesc.Quality = 0;
 
 	// Nombre de RenderTargets
-	basePsoDesc.NumRenderTargets = 1;
+	mBasePsoDesc.NumRenderTargets = 1;
 
 	// Primitive Topology
-	basePsoDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
+	mBasePsoDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
 
 	// Input Layout
-	basePsoDesc.InputLayout = { mInputLayout.data(), (UINT)mInputLayout.size() };
+	mBasePsoDesc.InputLayout = { mInputLayout.data(), (UINT)mInputLayout.size() };
 
 	// Root Signature
-	basePsoDesc.pRootSignature = mRootSignature.Get();
+	mBasePsoDesc.pRootSignature = mRootSignature.Get();
 
 	Manager* mgr = Manager::GetInstance();
 
@@ -449,7 +445,7 @@ void Engine::BuildAllGameObjects()
 	GameObject* obj2 = new GameObject;
 	mgr->AddGameObject(obj2);
 
-	ID3D12PipelineState* objPSO = psoManager.GetOrCreatePSO(L"Obj1PSO", basePsoDesc, mD3DDevice.Get());
+	ID3D12PipelineState* objPSO = mPsoManager.GetOrCreatePSO(L"ObjPSO", mBasePsoDesc, mD3DDevice.Get());
 	cube->SetPSO(objPSO);
 	cube->CreateCB(mD3DDevice.Get());
 	cube->SetGeo(mTriangleGeo.get());
@@ -505,8 +501,10 @@ void Engine::BuildRootSignature()
 
 void Engine::BuildTriangleGeometry()
 {
+	ResetCommandList();
+
 	GeometryGenerator geoGen;
-	Mesh triangle = geoGen.CreateCube(1.0f, 1.0f, 1.0f);
+	Mesh triangle = geoGen.CreateTriangle3D(1.0f, 1.0f, 1.0f);
 
 	const UINT vbByteSize = (UINT)triangle.vertices.size() * sizeof(Vertex);
 	const UINT ibByteSize = (UINT)triangle.indices.size() * sizeof(std::uint16_t);
@@ -533,6 +531,56 @@ void Engine::BuildTriangleGeometry()
 	mTriangleGeo->DrawArgs["triangle"] = submesh;
 
 	mTriangleGeo->indexCount = submesh.IndexCount;
+
+	CloseCommandeList();
+	ExecuteCommandList();
+}
+
+void Engine::CreateCube(float width, float height, float depth, float x, float y, float z)
+{
+	ResetCommandList();
+
+	GeometryGenerator geoGen;
+	Mesh cube = geoGen.CreateCube(width, height, depth);
+
+	const UINT vbByteSize = (UINT)cube.vertices.size() * sizeof(Vertex);
+	const UINT ibByteSize = (UINT)cube.indices.size() * sizeof(std::uint16_t);
+
+	MeshGeometry* geo = new MeshGeometry;
+	geo->Name = "geo";
+
+	geo->VertexBufferGPU = d3dUtil::CreateDefaultBuffer(mD3DDevice.Get(),
+		mCommandList.Get(), cube.vertices.data(), vbByteSize, geo->VertexBufferUploader);
+
+	geo->IndexBufferGPU = d3dUtil::CreateDefaultBuffer(mD3DDevice.Get(),
+		mCommandList.Get(), cube.indices.data(), ibByteSize, geo->IndexBufferUploader);
+
+	geo->VertexByteStride = sizeof(Vertex);
+	geo->VertexBufferByteSize = vbByteSize;
+	geo->IndexFormat = DXGI_FORMAT_R16_UINT;
+	geo->IndexBufferByteSize = ibByteSize;
+
+	SubmeshGeometry submesh;
+	submesh.IndexCount = (UINT)cube.indices.size();
+	submesh.StartIndexLocation = 0;
+	submesh.BaseVertexLocation = 0;
+
+	geo->DrawArgs["cube"] = submesh;
+
+	geo->indexCount = submesh.IndexCount;
+
+	CloseCommandeList();
+	ExecuteCommandList();
+
+	Manager* mgr = Manager::GetInstance();
+	GameObject* gameObject = new GameObject;
+	mgr->AddGameObject(gameObject);
+
+	ID3D12PipelineState* objPSO = mPsoManager.GetOrCreatePSO(L"ObjPSO", mBasePsoDesc, mD3DDevice.Get());
+	gameObject->SetPSO(objPSO);
+	gameObject->CreateCB(mD3DDevice.Get());
+	gameObject->SetGeo(geo);
+	gameObject->mTransform.SetPosition(x, y, z);
 }
 
 void Engine::InitD3D()
@@ -610,14 +658,11 @@ void Engine::Update()
 
 	list<GameObject*>& gameObjects = mgr->GetGameObjects();
 
-	float i = 0.1f;
 	for (GameObject* obj : gameObjects) {
 		ObjectConstants objConstants;
-		obj->mTransform.SetPosition(i, 0, 0);
 		//obj->mTransform.RotateYaw(10.0f * gt.TotalTime());
 		obj->mTransform.RotateYaw(10.0f);
 
-		i += 1.5f;
 		//XMFLOAT4X4 world = obj->mTransform.mWorldMatrix;
 
 		XMMATRIX world = XMLoadFloat4x4(&obj->mTransform.mWorldMatrix);

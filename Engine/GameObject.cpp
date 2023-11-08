@@ -1,6 +1,9 @@
 #include "GameObject.h"
 //#include "Collider.h"
 
+using namespace DirectX;
+using namespace Microsoft::WRL;
+
 GameObject::GameObject(): m_PSO(nullptr)
 {
     

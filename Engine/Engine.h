@@ -16,7 +16,8 @@
 #include "ShaderManager.h"
 #include "GeometryGenerator.h"
 #include "PSOManager.h"
-#include "GameTimer.h"
+
+class GameObject;
 
 struct ObjectConstants
 {
@@ -65,6 +66,8 @@ public:
     void DescribeDepthStencilBuffer();
     void BuildRootSignature();
     void BuildTriangleGeometry();
+
+    void CreateCube(float width = 1.0f, float height = 1.0f, float depth = 1.0f, float x = 0.0f, float y = 0.0f, float z = 0.0f);
     
     void FlushCommandQueue();
 
@@ -133,6 +136,11 @@ private:
     XMFLOAT4X4 mWorldViewProj = MathHelper::Identity4x4(); // tranposed
     XMMATRIX mView;
     XMMATRIX mProj;
+
+    std::vector<GameObject> mNewGameObbjects;
+    // Generic PSO
+    PSOManager mPsoManager;
+    D3D12_GRAPHICS_PIPELINE_STATE_DESC mBasePsoDesc = {};
 
     float mTheta = 1.5f * DirectX::XM_PI;
     float mPhi = DirectX::XM_PIDIV4;
