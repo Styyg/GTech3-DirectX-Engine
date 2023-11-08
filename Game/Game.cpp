@@ -29,18 +29,24 @@ void Game::Run()
     }
 }
 
+bool temp = false;
 void Game::Update()
 {
     mGameTimer.Tick();
     // Update game logic
-    engine.Update();
+    engine.Update(mGameTimer);
+    if (temp == false)
+    {
+        engine.CreateCube(0.1, 0.1, 0.1, 1, 0, 0);
+        engine.CreateCube(0.1, 0.1, 0.1, -1, 0, 0);
+        engine.CreateCube(0.1, 0.1, 0.1, 1, 1, 1);
+        temp = true;
+    }
     // create new ennemy each 5sec
     if (mTimer + 5 < mGameTimer.TotalTime())
     {
         //spawn an ennemy
         mTimer = mGameTimer.TotalTime();
-        std::wstring str = L"Timer : " + std::to_wstring(mTimer) + L'\n';
-        OutputDebugString(str.c_str());
     }
 }
 
