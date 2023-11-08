@@ -10,12 +10,12 @@
 #include <DirectXMath.h>
 #include "d3dUtil.h"
 #include "UploadBuffer.h"
-
 #include "Input.h"
 #include "Camera.h"
 #include "ShaderManager.h"
 #include "GeometryGenerator.h"
 #include "PSOManager.h"
+#include "GameTimer.h"
 
 class GameObject;
 
@@ -51,7 +51,7 @@ public:
     LONG GetClientWidth();
     LONG GetClientHeight();
 
-    void Update();
+    void Update(GameTimer gameTimer);
     void Draw();
     void OnResize();
 

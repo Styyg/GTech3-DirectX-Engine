@@ -34,7 +34,7 @@ void Game::Update()
 {
     mGameTimer.Tick();
     // Update game logic
-    engine.Update();
+    engine.Update(mGameTimer);
     if (temp == false)
     {
         engine.CreateCube(0.1, 0.1, 0.1, 1, 0, 0);

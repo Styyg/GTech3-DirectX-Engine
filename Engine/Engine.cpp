@@ -633,19 +633,19 @@ void Engine::FlushCommandQueue()
 	}
 }
 
-void Engine::Update()
+void Engine::Update(GameTimer gt)
 {
 	Camera camera;
 	camera.Update();
 	input.Update();
 
 	//// temporary inputs to move the camera around the center
-	if (input.GetKeyState('Z')) mPhi += .01f;
-	if (input.GetKeyState('S')) mPhi -= .01f;
-	if (input.GetKeyState('Q')) mTheta += .01f;
-	if (input.GetKeyState('D')) mTheta -= .01f;
-	if (input.GetKeyState('A')) mRadius += .001f;
-	if (input.GetKeyState('E')) mRadius -= .001f;
+	if (input.GetKeyState('Z')) mPhi += 1.0f * gt.DeltaTime();
+	if (input.GetKeyState('S')) mPhi -= 1.0f * gt.DeltaTime();
+	if (input.GetKeyState('Q')) mTheta += 1.0f * gt.DeltaTime();
+	if (input.GetKeyState('D')) mTheta -= 1.0f * gt.DeltaTime();
+	if (input.GetKeyState('A')) mRadius += 1.0f * gt.DeltaTime();
+	if (input.GetKeyState('E')) mRadius -= 1.0f * gt.DeltaTime();
 
 	float x = mRadius * sinf(mPhi) * cosf(mTheta);
 	float z = mRadius * sinf(mPhi) * sinf(mTheta);
@@ -660,8 +660,8 @@ void Engine::Update()
 
 	for (GameObject* obj : gameObjects) {
 		ObjectConstants objConstants;
-		//obj->mTransform.RotateYaw(10.0f * gt.TotalTime());
-		obj->mTransform.RotateYaw(10.0f);
+		obj->mTransform.RotateYaw(10.0f * gt.TotalTime());
+		//obj->mTransform.RotateYaw(10.0f);
 
 		//XMFLOAT4X4 world = obj->mTransform.mWorldMatrix;
 
