@@ -1,6 +1,10 @@
 #include "Game.h"
 
-Game::Game(HWND hWnd) : engine(hWnd) {}
+Game::Game(HWND hWnd) : engine(hWnd)
+{
+    mGameTimer.Reset();
+    mTimer = mGameTimer.TotalTime();
+}
 
 Game::~Game() {}
 
@@ -27,8 +31,17 @@ void Game::Run()
 
 void Game::Update()
 {
+    mGameTimer.Tick();
     // Update game logic
     engine.Update();
+    // create new ennemy each 5sec
+    if (mTimer + 5 < mGameTimer.TotalTime())
+    {
+        //spawn an ennemy
+        mTimer = mGameTimer.TotalTime();
+        std::wstring str = L"Timer : " + std::to_wstring(mTimer) + L'\n';
+        OutputDebugString(str.c_str());
+    }
 }
 
 void Game::Draw()
