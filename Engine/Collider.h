@@ -8,13 +8,13 @@ class GameObject;
 class Collider : public Component
 {
 private:
-	DirectX::XMFLOAT3 mScale;
+	DirectX::XMFLOAT3 mCenter;
+	float mDistance;
 	
 public:
-	DirectX::XMFLOAT3 mCenter;
 	DirectX::XMFLOAT3 mRadius;
 	Collider(GameObject* gameObject);
 	~Collider();
 	float GetDistance(const GameObject& Gameobject2);
-	/*bool IsColliding(const GameObject& Gameobject2);*/
+	bool IsColliding(GameObject& Gameobject2);
 }; 

@@ -36,6 +36,7 @@ public:
 	void AddCollider(Collider* collider);
 	void AddRigidbody(Rigidbody* rigidbody);
 	Collider* GetCollider();
+	bool HasCollider();
 	//void AddMesh(Mesh mesh);
 	//void AddTrigger(Trigger trigger);
 

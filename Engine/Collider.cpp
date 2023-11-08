@@ -15,7 +15,6 @@ Collider::~Collider()
 
 float Collider::GetDistance(const GameObject& Gameobject2)
 {
-	float mDistance;
 	XMFLOAT3 mCenter2; 
 	mCenter.x = mGameObjectPtr->mTransform.vPosition.x;
 	mCenter.y = mGameObjectPtr->mTransform.vPosition.y;
@@ -32,15 +31,21 @@ float Collider::GetDistance(const GameObject& Gameobject2)
 	return mDistance;
 }
 
-//bool Collider::IsColliding(const GameObject& Gameobject2)
-//{
-//	if ()
-//	{
-//		return true;
-//	}
-//		
-//	else
-//	{
-//		return false;
-//	}
-//}
+bool Collider::IsColliding( GameObject& Gameobject2)
+{
+	// dist - rayonA - rayonB
+	float mCollision= mDistance - 1 * 0.5 - 1 * 0.5;
+	bool hasCollider = mGameObjectPtr->HasCollider();
+	bool hasCollider2 = Gameobject2.HasCollider(); 
+	if (hasCollider && hasCollider2 != false)
+	{
+		if (mCollision <= 0)
+			return true;
+		else
+			return false;
+	}	
+	else
+	{
+		return false;
+	}
+}
