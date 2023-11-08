@@ -9,8 +9,6 @@ class Collider : public Component
 {
 private:
 	DirectX::XMFLOAT3 mCenter;
-	float mDistance;
-	
 public:
 	DirectX::XMFLOAT3 mRadius;
 	Collider(GameObject* gameObject);
