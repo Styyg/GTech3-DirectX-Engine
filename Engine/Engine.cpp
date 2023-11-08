@@ -662,8 +662,7 @@ void Engine::Update(GameTimer gt)
 
 	for (GameObject* obj : gameObjects) {
 		ObjectConstants objConstants;
-		obj->mTransform.RotateYaw(10.0f * gt.TotalTime());
-		//obj->mTransform.RotateYaw(10.0f);
+		//obj->mTransform.RotateYaw(10.0f * gt.TotalTime());
 
 		//XMFLOAT4X4 world = obj->mTransform.mWorldMatrix;
 
