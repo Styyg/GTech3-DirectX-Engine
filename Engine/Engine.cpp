@@ -530,24 +530,28 @@ void Engine::BuildTriangleGeometry()
 	FlushCommandQueue();
 }
 
-void Engine::CreateCube(GameObject* gameObject,float width, float height, float depth, float x, float y, float z)
+void Engine::CreateForm(GameObject* gameObject, int id, float width, float height, float depth)
 {
 	ResetCommandList();
 
 	GeometryGenerator geoGen;
-	Mesh cube = geoGen.CreateCube(width, height, depth);
+	Mesh mesh;
+	if(id == 0)
+		mesh = geoGen.CreateCube(width, height, depth);
+	else
+		mesh = geoGen.CreateTriangle3D(width, height, depth);
 
-	const UINT vbByteSize = (UINT)cube.vertices.size() * sizeof(Vertex);
-	const UINT ibByteSize = (UINT)cube.indices.size() * sizeof(std::uint16_t);
+	const UINT vbByteSize = (UINT)mesh.vertices.size() * sizeof(Vertex);
+	const UINT ibByteSize = (UINT)mesh.indices.size() * sizeof(std::uint16_t);
 
 	MeshGeometry* geo = new MeshGeometry;
 	geo->Name = "geo";
 
 	geo->VertexBufferGPU = d3dUtil::CreateDefaultBuffer(mD3DDevice.Get(),
-		mCommandList.Get(), cube.vertices.data(), vbByteSize, geo->VertexBufferUploader);
+		mCommandList.Get(), mesh.vertices.data(), vbByteSize, geo->VertexBufferUploader);
 
 	geo->IndexBufferGPU = d3dUtil::CreateDefaultBuffer(mD3DDevice.Get(),
-		mCommandList.Get(), cube.indices.data(), ibByteSize, geo->IndexBufferUploader);
+		mCommandList.Get(), mesh.indices.data(), ibByteSize, geo->IndexBufferUploader);
 
 	geo->VertexByteStride = sizeof(Vertex);
 	geo->VertexBufferByteSize = vbByteSize;
@@ -555,11 +559,11 @@ void Engine::CreateCube(GameObject* gameObject,float width, float height, float 
 	geo->IndexBufferByteSize = ibByteSize;
 
 	SubmeshGeometry submesh;
-	submesh.IndexCount = (UINT)cube.indices.size();
+	submesh.IndexCount = (UINT)mesh.indices.size();
 	submesh.StartIndexLocation = 0;
 	submesh.BaseVertexLocation = 0;
 
-	geo->DrawArgs["cube"] = submesh;
+	geo->DrawArgs["mesh"] = submesh;
 
 	geo->indexCount = submesh.IndexCount;
 
@@ -574,7 +578,6 @@ void Engine::CreateCube(GameObject* gameObject,float width, float height, float 
 	gameObject->SetPSO(objPSO);
 	gameObject->CreateCB(mD3DDevice.Get());
 	gameObject->SetGeo(geo);
-	gameObject->mTransform.SetPosition(x, y, z);
 }
 
 void Engine::InitD3D()
@@ -631,11 +634,9 @@ void Engine::Update(GameTimer gt)
 {
 	Manager* mgr = Manager::GetInstance();
 	mgr->Update(gt);
-	Camera camera;
-	camera.Update();
 	input.Update();
 
-	//// temporary inputs to move the camera around the center
+	// temporary inputs to move the camera around the center
 	if (input.GetKeyState('Z')) mPhi += 1.0f * gt.DeltaTime();
 	if (input.GetKeyState('S')) mPhi -= 1.0f * gt.DeltaTime();
 	if (input.GetKeyState('Q')) mTheta += 1.0f * gt.DeltaTime();
@@ -664,8 +665,10 @@ void Engine::Update(GameTimer gt)
 	float z = mRadius * sinf(mPhi) * sinf(mTheta);
 	float y = mRadius * cosf(mPhi);
 
-	mView = camera.GetViewMatrix(x, y, z);
-	mProj = camera.GetProjectionMatrix(mClientWidth, mClientHeight);
+	mCamera.SetPosition(x, y, z);
+	mCamera.SetLookAt(0, 0, 0);
+	mView = mCamera.GetViewMatrix();
+	mProj = mCamera.GetProjectionMatrix(mClientWidth, mClientHeight);
 
 	vector<GameObject*>& gameObjects = mgr->GetGameObjects();
 

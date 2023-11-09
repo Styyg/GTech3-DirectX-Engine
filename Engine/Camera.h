@@ -16,7 +16,7 @@ public:
 
 	XMFLOAT3 GetPosition() const;
 	XMFLOAT3 GetLookAt() const;
-	XMMATRIX GetViewMatrix(float x, float y, float z);
+	XMMATRIX GetViewMatrix();
 	XMMATRIX GetProjectionMatrix(float clientWidth, float clientHeight);
 
 private:

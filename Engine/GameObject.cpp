@@ -12,6 +12,10 @@ GameObject::GameObject(): m_PSO(nullptr)
 GameObject::~GameObject()
 {
     // TODO: delete component mCmps
+    for (auto& pair : mCmps)
+    {
+        delete pair.second;
+    }
 }
 
 void GameObject::AddCollider()
@@ -55,6 +59,11 @@ bool GameObject::HasCollider() {
         // Le composant Collider n'est pas trouv�, renvoie false.
         return false;
     }
+}
+
+void GameObject::Kill()
+{
+    mToDestroy = true;
 }
 
 //void GameObject::AddMesh(Mesh mesh)

@@ -1,6 +1,6 @@
 #include "Camera.h"
 
-Camera::Camera() : mPosition(0.0f, 0.0f, 0.0f), mLookAt(0.0f, 0.0f, 1.0f)
+Camera::Camera() : mPosition(0.0f, 0.0f, -5.0f), mLookAt(0.0f, 0.0f, 0.0f)
 {
 	XMStoreFloat4x4(&mView, XMMatrixIdentity());
 	XMStoreFloat4x4(&mProj, XMMatrixIdentity());
@@ -35,10 +35,11 @@ XMFLOAT3 Camera::GetLookAt() const
 	return mLookAt;
 }
 
-XMMATRIX Camera::GetViewMatrix(float x, float y, float z)
+XMMATRIX Camera::GetViewMatrix()
 {
-	XMVECTOR pos = XMVectorSet(x, y, z, 1.0f);
-	XMVECTOR target = XMVectorZero();
+	//XMVECTOR pos = XMVectorSet(x, y, z, 1.0f);
+	XMVECTOR pos = XMLoadFloat3(&mPosition);
+	XMVECTOR target = XMLoadFloat3(&mLookAt);
 	XMVECTOR up = XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f);
 
 	XMMATRIX view = XMMatrixLookAtLH(pos, target, up);
