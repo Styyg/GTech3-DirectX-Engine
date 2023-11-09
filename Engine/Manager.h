@@ -14,7 +14,7 @@ public:
     void AddGameObject(GameObject* obj);
     //void RemoveGameObject(const GameObject& obj);
     void ClearGameObjects();
-    void Update();
+    void Update(GameTimer gt);
 
     vector<GameObject*>& GetGameObjects();
 

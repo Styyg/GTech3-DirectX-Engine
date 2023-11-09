@@ -15,7 +15,7 @@ public:
 	GameObject();
 	~GameObject();
 
-	void AddComponent(Component component);
+	//void AddComponent(Component component);
 
 	// CB
 	void CreateCB(ID3D12Device* pDevice);
@@ -32,8 +32,8 @@ public:
 	//
 
 	void Render();
-	virtual void Update();
-	void AddCollider(Collider* collider);
+	virtual void Update(GameTimer gt);
+	void AddCollider();
 	void AddRigidbody(Rigidbody* rigidbody);
 	Collider* GetCollider();
 	bool HasCollider();
@@ -45,7 +45,7 @@ public:
 	UploadBuffer<ObjectConstants>* mObjectCB = nullptr;
 	UploadBuffer<PassConstants>* mPassConstants = nullptr;
 
-private:
+protected:
 	ID3D12PipelineState* m_PSO;
 	MeshGeometry* m_pGeo;
 

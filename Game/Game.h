@@ -1,5 +1,6 @@
 #pragma once
 #include "Engine.h"
+#include "Enemy.h"
 #include <sstream>
 
 class Game
@@ -13,6 +14,7 @@ public:
 private:
 	Engine engine;
     GameTimer mGameTimer;
+	vector<Enemy*> mEnemiesList;
     float mTimer;
 	HWND mHWnd = nullptr;
 

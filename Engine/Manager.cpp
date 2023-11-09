@@ -20,10 +20,11 @@ void Manager::ClearGameObjects()
 	gameObjects.clear();
 }
 
-void Manager::Update()
+void Manager::Update(GameTimer gt)
 {
-	for (GameObject* obj : gameObjects) {
-		obj->Update();
+	for (GameObject* obj : gameObjects) 
+    {
+		obj->Update(gt);
 	}
 
 	// Collision
