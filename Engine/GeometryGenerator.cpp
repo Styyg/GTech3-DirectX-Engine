@@ -25,17 +25,17 @@ Mesh GeometryGenerator::CreateTriangle3D(float width, float height, float depth)
 		Vertex({ XMFLOAT3(+w, -h, -d), XMFLOAT4(Colors::Red) }), // front right
 		Vertex({ XMFLOAT3(-w, -h, -d), XMFLOAT4(Colors::Red) }), // front left
 		// left back face
-		Vertex({ XMFLOAT3(0.0f, +h, 0.0f), XMFLOAT4(Colors::Blue) }), // up 
-		Vertex({ XMFLOAT3(-w, -h, -d), XMFLOAT4(Colors::Blue) }), // front left
-		Vertex({ XMFLOAT3(0.0f, -h, d), XMFLOAT4(Colors::Blue) }), // back middle
+		Vertex({ XMFLOAT3(0.0f, +h, 0.0f), XMFLOAT4(Colors::Red) }), // up 
+		Vertex({ XMFLOAT3(-w, -h, -d), XMFLOAT4(Colors::Red) }), // front left
+		Vertex({ XMFLOAT3(0.0f, -h, d), XMFLOAT4(Colors::Red) }), // back middle
 		// right back face
-		Vertex({ XMFLOAT3(0.0f, +h, 0.0f), XMFLOAT4(Colors::Green) }), // up 
-		Vertex({ XMFLOAT3(0.0f, -h, d), XMFLOAT4(Colors::Green) }), // back middle
-		Vertex({ XMFLOAT3(+w, -h, -d), XMFLOAT4(Colors::Green) }), // front right
+		Vertex({ XMFLOAT3(0.0f, +h, 0.0f), XMFLOAT4(Colors::Red) }), // up 
+		Vertex({ XMFLOAT3(0.0f, -h, d), XMFLOAT4(Colors::Red) }), // back middle
+		Vertex({ XMFLOAT3(+w, -h, -d), XMFLOAT4(Colors::Red) }), // front right
 		// bottom face
 		Vertex({ XMFLOAT3(+w, -h, -d), XMFLOAT4(Colors::Red) }), // front right
-		Vertex({ XMFLOAT3(0.0f, -h, d), XMFLOAT4(Colors::Blue) }), // back middle
-		Vertex({ XMFLOAT3(-w, -h, -d), XMFLOAT4(Colors::Green) }), // front left
+		Vertex({ XMFLOAT3(0.0f, -h, d), XMFLOAT4(Colors::Red) }), // back middle
+		Vertex({ XMFLOAT3(-w, -h, -d), XMFLOAT4(Colors::Red) }), // front left
 	};
 
 	mesh.indices =
@@ -64,15 +64,15 @@ Mesh GeometryGenerator::CreateCube(float width, float height, float depth)
 	mesh.vertices =
 	{
 		// front vertices
-		Vertex({ XMFLOAT3(-w, -h, -d), XMFLOAT4(Colors::LightBlue) }), // bottom left
-		Vertex({ XMFLOAT3(-w, +h, -d), XMFLOAT4(Colors::AliceBlue) }), // up left
-		Vertex({ XMFLOAT3(+w, +h, -d), XMFLOAT4(Colors::Azure) }), // up right
-		Vertex({ XMFLOAT3(+w, -h, -d), XMFLOAT4(Colors::Aquamarine) }), // bottom right
+		Vertex({ XMFLOAT3(-w, -h, -d), XMFLOAT4(Colors::Coral) }), // bottom left
+		Vertex({ XMFLOAT3(-w, +h, -d), XMFLOAT4(Colors::Coral) }), // up left
+		Vertex({ XMFLOAT3(+w, +h, -d), XMFLOAT4(Colors::Coral) }), // up right
+		Vertex({ XMFLOAT3(+w, -h, -d), XMFLOAT4(Colors::Coral) }), // bottom right
 		// back vertices
-		Vertex({ XMFLOAT3(-w, -h, +d), XMFLOAT4(Colors::Magenta) }), // bottom left
-		Vertex({ XMFLOAT3(-w, +h, +d), XMFLOAT4(Colors::MidnightBlue) }), // up left
-		Vertex({ XMFLOAT3(+w, +h, +d), XMFLOAT4(Colors::Orchid) }), // up right
-		Vertex({ XMFLOAT3(+w, -h, +d), XMFLOAT4(Colors::Silver) }), // bottom right
+		Vertex({ XMFLOAT3(-w, -h, +d), XMFLOAT4(Colors::Coral) }), // bottom left
+		Vertex({ XMFLOAT3(-w, +h, +d), XMFLOAT4(Colors::Coral) }), // up left
+		Vertex({ XMFLOAT3(+w, +h, +d), XMFLOAT4(Colors::Coral) }), // up right
+		Vertex({ XMFLOAT3(+w, -h, +d), XMFLOAT4(Colors::Coral) }), // bottom right
 	};
 
 	mesh.indices =

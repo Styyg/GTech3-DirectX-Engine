@@ -12,6 +12,10 @@ GameObject::GameObject(): m_PSO(nullptr)
 GameObject::~GameObject()
 {
     // TODO: delete component mCmps
+    for (auto& pair : mCmps)
+    {
+        delete pair.second;
+    }
 }
 
 void GameObject::AddCollider()

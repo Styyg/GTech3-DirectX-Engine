@@ -1,6 +1,6 @@
 #include "Game.h"
 
-Game::Game(HWND hWnd) : engine(hWnd)
+Game::Game(HWND hWnd) : mEngine(hWnd), mInput(hWnd)
 {
     mHWnd = hWnd;
     mGameTimer.Reset();
@@ -31,32 +31,45 @@ void Game::Run()
     }
 }
 
-
 void Game::Update()
 {
+    mInput.Update();
     mGameTimer.Tick();
     // Update game logic
-    engine.Update(mGameTimer);
+    mEngine.Update(mGameTimer);
     // create new ennemy each 5sec
     if (mTimer + 1 < mGameTimer.TotalTime())
     {
         float posX = rand() % 40 - 20;
         float posY = rand() % 40 - 20;
         float posZ = rand() % 30 + 45;
+
         //spawn an ennemy
-        Enemy* mEnemy = new Enemy(mGameTimer.TotalTime());
-        engine.CreateCube(mEnemy,1.0, 1.0, 1.0, posX, posY, posZ);
-        mEnemiesList.push_back(mEnemy);
+        Enemy* enemy = new Enemy(mGameTimer.TotalTime());
+        mEngine.CreateForm(enemy, 0);
+        enemy->mTransform.SetPosition(posX, posY, posZ);
+        //mEnemiesList.push_back(enemy);
+
         /*std::wstring str = std::to_wstring(posZ);
         OutputDebugString(str.c_str());*/
         mTimer = mGameTimer.TotalTime();
     }
+
+    if (mInput.GetKeyState(VK_LBUTTON) == DOWN)
+    {
+        Missile* missile = new Missile(mEngine.GetCam());
+        mEngine.CreateForm(missile, 1,  1, 1, 1.0);
+        missile->mTransform.SetPosition(0, 0, 1.0);
+        //mEnemiesList.push_back(enemy);
+    }
+
+    //missile.Update(mGameTimer.DeltaTime());
 }
 
 void Game::Draw()
 {
     // Draw the frame
-    engine.Draw();
+    mEngine.Draw();
 }
 
 void Game::CalculateFrameStats()

@@ -67,7 +67,7 @@ public:
     void BuildRootSignature();
     void BuildTriangleGeometry();
 
-    void CreateCube(GameObject* gameObject,float width = 1.0f, float height = 1.0f, float depth = 1.0f, float x = 0.0f, float y = 0.0f, float z = 0.0f);
+    void CreateForm(GameObject* gameObject, int id, float width = 1.0f, float height = 1.0f, float depth = 1.0f);
     
     void FlushCommandQueue();
 
@@ -82,6 +82,8 @@ public:
 
     void BuildAllGameObjects();
     void DrawAllGameObjects();
+
+    Camera* GetCam() { return &mCamera; }
 
 private:
     ShaderManager shaderManager;
@@ -147,6 +149,7 @@ private:
     float mRadius = 0.001f;
 
     Input input;
+    Camera mCamera;
 
     int mClientWidth = 1280;
     int mClientHeight = 720;

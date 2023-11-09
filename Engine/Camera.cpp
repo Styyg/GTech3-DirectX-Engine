@@ -15,9 +15,20 @@ void Camera::Update()
 
 }
 
-XMMATRIX Camera::GetViewMatrix(float x, float y, float z)
+XMFLOAT3 Camera::GetPosition() const
 {
-	XMVECTOR pos = XMVectorSet(x, y, z, 1.0f);
+	return mPosition;
+}
+
+XMFLOAT3 Camera::GetLookAt() const
+{
+	return mLookAt;
+}
+
+XMMATRIX Camera::GetViewMatrix()
+{
+	//XMVECTOR pos = XMVectorSet(x, y, z, 1.0f);
+	XMVECTOR pos = XMLoadFloat3(&mPosition);
 	XMVECTOR target = XMVectorZero();
 	XMVECTOR up = XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f);
 

@@ -12,7 +12,9 @@ public:
 
 	void Update();
 
-	XMMATRIX GetViewMatrix(float x, float y, float z);
+	XMFLOAT3 GetPosition() const;
+	XMFLOAT3 GetLookAt() const;
+	XMMATRIX GetViewMatrix();
 	XMMATRIX GetProjectionMatrix(float clientWidth, float clientHeight);
 
 private:
