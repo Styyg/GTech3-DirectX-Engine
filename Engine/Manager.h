@@ -1,7 +1,7 @@
 #pragma once
 
 #include <iostream>
-#include <list>
+#include <vector>
 
 #include "GameObject.h"
 
@@ -16,10 +16,10 @@ public:
     void ClearGameObjects();
     void Update(GameTimer gt);
 
-    list<GameObject*>& GetGameObjects();
+    vector<GameObject*>& GetGameObjects();
 
 private:
-    list<GameObject*> gameObjects;
+    vector<GameObject*> gameObjects;
 
     Manager() {}
 };
