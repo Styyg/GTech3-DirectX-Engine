@@ -42,9 +42,9 @@ void Game::Update()
     {
         float posX = rand() % 40 - 20;
         float posY = rand() % 40 - 20;
-        float posZ = rand() % 30 + 15;
+        float posZ = rand() % 30 + 45;
         //spawn an ennemy
-        Enemy* mEnemy = new Enemy;
+        Enemy* mEnemy = new Enemy(mGameTimer.TotalTime());
         engine.CreateCube(mEnemy,1.0, 1.0, 1.0, posX, posY, posZ);
         mEnemiesList.push_back(mEnemy);
         /*std::wstring str = std::to_wstring(posZ);
