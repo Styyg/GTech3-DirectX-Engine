@@ -11,13 +11,12 @@ GameObject::GameObject(): m_PSO(nullptr)
 
 GameObject::~GameObject()
 {
-
+    // TODO: delete component mCmps
 }
 
-void GameObject::AddCollider(Collider* collider)
+void GameObject::AddCollider()
 {
-	mCmps.emplace(Component::COLLIDER, collider);
-
+	mCmps.emplace(Component::COLLIDER, new Collider(this));
 }
 
 void GameObject::AddRigidbody(Rigidbody* rigidbody)
@@ -75,7 +74,7 @@ void GameObject::Render()
 
 }
 
-void GameObject::Update()
+void GameObject::Update(GameTimer gt)
 {
 
 }
