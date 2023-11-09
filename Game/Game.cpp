@@ -1,4 +1,5 @@
 #include "Game.h"
+#include "Missile.h"
 
 Game::Game(HWND hWnd) : engine(hWnd)
 {
