@@ -10,6 +10,8 @@ public:
 	Camera();
 	~Camera();
 
+	void SetPosition(float x, float y, float z);
+	void SetLookAt(float x, float y, float z);
 	void Update();
 
 	XMFLOAT3 GetPosition() const;
@@ -20,4 +22,6 @@ public:
 private:
 	XMFLOAT4X4 mView;
 	XMFLOAT4X4 mProj;
+	XMFLOAT3 mPosition;
+	XMFLOAT3 mLookAt;
 };

@@ -1,11 +1,21 @@
 #include "Game.h"
+#include "Missile.h"
 
 Game::Game(HWND hWnd) : mEngine(hWnd), mInput(hWnd)
 {
     mHWnd = hWnd;
     mGameTimer.Reset();
     mTimer = mGameTimer.TotalTime();
+
+    //speed = 2.0f;
+
+    //// Cr�er une instance de Missile
+    //missile.setPosition(cam.GetPosition());
+    //missile.setDirection(cam.GetPosition()); 
+    //missile.setVelocity(speed);
 }
+
+//cam.GetPosition(), cam.GetLookAt(), speed
 
 Game::~Game() {}
 

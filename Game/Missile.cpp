@@ -11,7 +11,7 @@ Missile::Missile(Camera* cam) :
 Missile::~Missile() {}
 
 void Missile::Update(GameTimer gt) {
-    // Mettre à jour la position en fonction de la direction et de la vitesse.
+    // Mettre ï¿½ jour la position en fonction de la direction et de la vitesse.
     position.x += direction.x * velocity * gt.DeltaTime();
     position.y += direction.y * velocity * gt.DeltaTime();
     position.z += direction.z * velocity * gt.DeltaTime();
