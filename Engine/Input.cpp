@@ -87,8 +87,8 @@ void Input::CaptureMousePos()
 void Input::CenterCursor()
 {
     POINT p;
-    p.x = 800 * 0.5;
-    p.y = 600 * 0.5;
+    p.x = 1280 * 0.5;
+    p.y = 720 * 0.5;
 
     mLastMousePos.x = p.x;
     mLastMousePos.y = p.y;

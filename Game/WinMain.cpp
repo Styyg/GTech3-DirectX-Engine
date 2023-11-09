@@ -41,8 +41,8 @@ int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 #endif
 
 	const auto pClassName = L"GameWnd";    
-	int clientWidth = 800;
-	int clientHeight = 600;
+	int clientWidth = 1280;
+	int clientHeight = 720;
 
 	// register window class
 	WNDCLASSEX wc = { 0 };
