@@ -5,7 +5,7 @@
 //#include "Component.h"
 #include "Collider.h"
 #include "Rigidbody.h" 
-#include "Mesh.h" 
+#include "Mesh.h"
 
 #include "Engine.h"
 
@@ -40,6 +40,9 @@ public:
 	//void AddMesh(Mesh mesh);
 	//void AddTrigger(Trigger trigger);
 
+	void Kill();
+	bool IsDead() { return mToDestroy; }
+
 	Transform mTransform;
 
 	UploadBuffer<ObjectConstants>* mObjectCB = nullptr;
@@ -51,4 +54,7 @@ protected:
 
 	std::string mName;
 	std::unordered_map<Component::Type, Component*> mCmps;
+
+private:
+	bool mToDestroy = false;
 };

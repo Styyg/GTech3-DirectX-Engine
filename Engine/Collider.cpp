@@ -40,7 +40,8 @@ bool Collider::IsColliding(GameObject& Gameobject2)
 	{
 		float distance = GetDistance(Gameobject2);
 		// dist - rayonA - rayonB
-		float mCollision = distance - 1 * 0.5 - 1 * 0.5;
+		// rayon = 2 so it's easier to shoot targets
+		float mCollision = distance - 2 * 0.5 - 2 * 0.5;
 		if (mCollision <= 0)
 			return true;
 		else

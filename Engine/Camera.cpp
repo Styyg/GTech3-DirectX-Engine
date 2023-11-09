@@ -1,6 +1,6 @@
 #include "Camera.h"
 
-Camera::Camera()
+Camera::Camera() : mPosition(0.0f, 0.0f, -5.0f), mLookAt(0.0f, 0.0f, 0.0f)
 {
 	XMStoreFloat4x4(&mView, XMMatrixIdentity());
 	XMStoreFloat4x4(&mProj, XMMatrixIdentity());
@@ -10,15 +10,36 @@ Camera::~Camera()
 {
 }
 
+void Camera::SetPosition(float x, float y, float z)
+{
+	mPosition = XMFLOAT3(x, y, z);
+}
+
+void Camera::SetLookAt(float x, float y, float z)
+{
+	mLookAt = XMFLOAT3(x, y, z);
+}
+
 void Camera::Update()
 {
 
 }
 
-XMMATRIX Camera::GetViewMatrix(float x, float y, float z)
+XMFLOAT3 Camera::GetPosition() const
 {
-	XMVECTOR pos = XMVectorSet(x, y, z, 1.0f);
-	XMVECTOR target = XMVectorZero();
+	return mPosition;
+}
+
+XMFLOAT3 Camera::GetLookAt() const
+{
+	return mLookAt;
+}
+
+XMMATRIX Camera::GetViewMatrix()
+{
+	//XMVECTOR pos = XMVectorSet(x, y, z, 1.0f);
+	XMVECTOR pos = XMLoadFloat3(&mPosition);
+	XMVECTOR target = XMLoadFloat3(&mLookAt);
 	XMVECTOR up = XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f);
 
 	XMMATRIX view = XMMatrixLookAtLH(pos, target, up);

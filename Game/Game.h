@@ -12,11 +12,17 @@ public:
 	void Run();
 
 private:
-	Engine engine;
+	Engine mEngine;
     GameTimer mGameTimer;
 	vector<Enemy*> mEnemiesList;
     float mTimer;
+	HWND mHWnd = nullptr;
+	Input mInput;
+
 	void Update();
 	void Draw();
+	void CalculateFrameStats();
 
+	//float speed;
+	//Camera cam;
 };
