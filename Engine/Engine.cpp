@@ -1,4 +1,5 @@
 #include "Engine.h"
+#include "GameObject.h"
 #include <sstream>
 
 #include "Manager.h"
@@ -9,7 +10,6 @@ using namespace std;
 
 Engine::Engine(HWND hWnd) : mHWnd(hWnd), input(hWnd)
 {
-	mGameTimer.Reset();
 	InitD3D();
 	SynchroProcess();
 	SetMSAA();
@@ -21,14 +21,13 @@ Engine::Engine(HWND hWnd) : mHWnd(hWnd), input(hWnd)
 
 	//RenderTargetView();
 	//DescribeDepthStencilBuffer();
-	BuildConstantBuffers();
 	BuildRootSignature();
 
-	ResetCommandList();
+	//ResetCommandList();
 	BuildTriangleGeometry();
-	CloseCommandeList();
-	ExecuteCommandList();
-	Flush();
+	//CloseCommandeList();
+	//ExecuteCommandList();
+	//FlushCommandQueue();
 	// aditionnal free upload buffer
 
 	BuildAllGameObjects(); 
@@ -409,55 +408,44 @@ void Engine::BuildAllGameObjects()
 	ComPtr<ID3DBlob> vertexShaderByteCode = vertexShader->GetShaderByteCode();
 	ComPtr<ID3DBlob> pixelShaderByteCode = pixelShader->GetShaderByteCode();
 
-	// Generic PSO
-
-	PSOManager psoManager;
-
-	D3D12_GRAPHICS_PIPELINE_STATE_DESC basePsoDesc = {};
-
 	// Shaders
-	basePsoDesc.VS = { reinterpret_cast<BYTE*>(vertexShaderByteCode->GetBufferPointer()), vertexShaderByteCode->GetBufferSize() };
-	basePsoDesc.PS = { reinterpret_cast<BYTE*>(pixelShaderByteCode->GetBufferPointer()), pixelShaderByteCode->GetBufferSize() };
+	mBasePsoDesc.VS = { reinterpret_cast<BYTE*>(vertexShaderByteCode->GetBufferPointer()), vertexShaderByteCode->GetBufferSize() };
+	mBasePsoDesc.PS = { reinterpret_cast<BYTE*>(pixelShaderByteCode->GetBufferPointer()), pixelShaderByteCode->GetBufferSize() };
 
 	// États par défaut pour le reste du PSO
-	basePsoDesc.BlendState = CD3DX12_BLEND_DESC(D3D12_DEFAULT);
-	basePsoDesc.SampleMask = UINT_MAX;
-	basePsoDesc.RasterizerState = CD3DX12_RASTERIZER_DESC(D3D12_DEFAULT);
-	basePsoDesc.DepthStencilState = CD3DX12_DEPTH_STENCIL_DESC(D3D12_DEFAULT);
+	mBasePsoDesc.BlendState = CD3DX12_BLEND_DESC(D3D12_DEFAULT);
+	mBasePsoDesc.SampleMask = UINT_MAX;
+	mBasePsoDesc.RasterizerState = CD3DX12_RASTERIZER_DESC(D3D12_DEFAULT);
+	mBasePsoDesc.DepthStencilState = CD3DX12_DEPTH_STENCIL_DESC(D3D12_DEFAULT);
 
 	// Formats de rendu
-	basePsoDesc.RTVFormats[0] = mBackBufferFormat;
-	basePsoDesc.DSVFormat = mDepthStencilFormat;
-	basePsoDesc.SampleDesc.Count = 1;
-	basePsoDesc.SampleDesc.Quality = 0;
+	mBasePsoDesc.RTVFormats[0] = mBackBufferFormat;
+	mBasePsoDesc.DSVFormat = mDepthStencilFormat;
+	mBasePsoDesc.SampleDesc.Count = 1;
+	mBasePsoDesc.SampleDesc.Quality = 0;
 
 	// Nombre de RenderTargets
-	basePsoDesc.NumRenderTargets = 1;
+	mBasePsoDesc.NumRenderTargets = 1;
 
 	// Primitive Topology
-	basePsoDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
+	mBasePsoDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
 
 	// Input Layout
-	basePsoDesc.InputLayout = { mInputLayout.data(), (UINT)mInputLayout.size() };
+	mBasePsoDesc.InputLayout = { mInputLayout.data(), (UINT)mInputLayout.size() };
 
 	// Root Signature
-	basePsoDesc.pRootSignature = mRootSignature.Get();
+	mBasePsoDesc.pRootSignature = mRootSignature.Get();
 
 	Manager* mgr = Manager::GetInstance();
 
-	GameObject* obj1 = new GameObject;
-	mgr->AddGameObject(obj1);
-	ID3D12PipelineState* obj1PSO = psoManager.GetOrCreatePSO(L"Obj1PSO", basePsoDesc, mD3DDevice.Get());
-	obj1->SetPSO(obj1PSO);
-	obj1->CreateCB(mD3DDevice.Get());
-	obj1->SetGeo(mTriangleGeo.get());
+	GameObject* triangle = new GameObject;
+	mgr->AddGameObject(triangle);
 
-	GameObject* obj2 = new GameObject;
-	mgr->AddGameObject(obj2);
-	ID3D12PipelineState* obj2PSO = psoManager.GetOrCreatePSO(L"Obj2PSO", basePsoDesc, mD3DDevice.Get());
-	obj2->SetPSO(obj2PSO);
-	obj2->CreateCB(mD3DDevice.Get());
-	obj2->SetGeo(mTriangleGeo.get());
+	ID3D12PipelineState* objPSO = mPsoManager.GetOrCreatePSO(L"ObjPSO", mBasePsoDesc, mD3DDevice.Get());
+	triangle->SetPSO(objPSO);
+	triangle->CreateCB(mD3DDevice.Get());
+	triangle->SetGeo(mTriangleGeo.get());
+	triangle->mTransform.SetPosition(0, 0, -1000);
 }
 
 void Engine::DrawAllGameObjects()
@@ -484,24 +472,6 @@ void Engine::DrawAllGameObjects()
 	}
 }
 
-void Engine::BuildConstantBuffers()
-{
-	//mObjectCB = std::make_unique<UploadBuffer<ObjectConstants>>(mD3DDevice.Get(), 1, true);
-
-	//UINT objCBByteSize = d3dUtil::CalcConstantBufferByteSize(sizeof(ObjectConstants));
-
-	//D3D12_GPU_VIRTUAL_ADDRESS cbAddress = mObjectCB->Resource()->GetGPUVirtualAddress();
-	// Offset to the ith object constant buffer in the buffer.
-	//int boxCBufIndex = 0;
-	//cbAddress += boxCBufIndex * objCBByteSize;
-
-	//D3D12_CONSTANT_BUFFER_VIEW_DESC cbvDesc;
-	//cbvDesc.BufferLocation = cbAddress;
-	//cbvDesc.SizeInBytes = d3dUtil::CalcConstantBufferByteSize(sizeof(ObjectConstants));
-
-	//mD3DDevice->CreateConstantBufferView(&cbvDesc, mCbvHeap->GetCPUDescriptorHandleForHeapStart());
-}
-
 void Engine::BuildRootSignature()
 {
 	CD3DX12_ROOT_PARAMETER slotRootParameter[1];
@@ -524,8 +494,10 @@ void Engine::BuildRootSignature()
 
 void Engine::BuildTriangleGeometry()
 {
+	ResetCommandList();
+
 	GeometryGenerator geoGen;
-	Mesh triangle = geoGen.CreateCube(1.0f, 1.0f, 1.0f);
+	Mesh triangle = geoGen.CreateTriangle3D(1.0f, 1.0f, 1.0f);
 
 	const UINT vbByteSize = (UINT)triangle.vertices.size() * sizeof(Vertex);
 	const UINT ibByteSize = (UINT)triangle.indices.size() * sizeof(std::uint16_t);
@@ -552,6 +524,60 @@ void Engine::BuildTriangleGeometry()
 	mTriangleGeo->DrawArgs["triangle"] = submesh;
 
 	mTriangleGeo->indexCount = submesh.IndexCount;
+
+	CloseCommandeList();
+	ExecuteCommandList();
+	FlushCommandQueue();
+}
+
+GameObject* Engine::CreateCube(float width, float height, float depth, float x, float y, float z)
+{
+	ResetCommandList();
+
+	GeometryGenerator geoGen;
+	Mesh cube = geoGen.CreateCube(width, height, depth);
+
+	const UINT vbByteSize = (UINT)cube.vertices.size() * sizeof(Vertex);
+	const UINT ibByteSize = (UINT)cube.indices.size() * sizeof(std::uint16_t);
+
+	MeshGeometry* geo = new MeshGeometry;
+	geo->Name = "geo";
+
+	geo->VertexBufferGPU = d3dUtil::CreateDefaultBuffer(mD3DDevice.Get(),
+		mCommandList.Get(), cube.vertices.data(), vbByteSize, geo->VertexBufferUploader);
+
+	geo->IndexBufferGPU = d3dUtil::CreateDefaultBuffer(mD3DDevice.Get(),
+		mCommandList.Get(), cube.indices.data(), ibByteSize, geo->IndexBufferUploader);
+
+	geo->VertexByteStride = sizeof(Vertex);
+	geo->VertexBufferByteSize = vbByteSize;
+	geo->IndexFormat = DXGI_FORMAT_R16_UINT;
+	geo->IndexBufferByteSize = ibByteSize;
+
+	SubmeshGeometry submesh;
+	submesh.IndexCount = (UINT)cube.indices.size();
+	submesh.StartIndexLocation = 0;
+	submesh.BaseVertexLocation = 0;
+
+	geo->DrawArgs["cube"] = submesh;
+
+	geo->indexCount = submesh.IndexCount;
+
+	CloseCommandeList();
+	ExecuteCommandList();
+	FlushCommandQueue();
+
+	Manager* mgr = Manager::GetInstance();
+	GameObject* gameObject = new GameObject;
+	mgr->AddGameObject(gameObject);
+
+	ID3D12PipelineState* objPSO = mPsoManager.GetOrCreatePSO(L"ObjPSO", mBasePsoDesc, mD3DDevice.Get());
+	gameObject->SetPSO(objPSO);
+	gameObject->CreateCB(mD3DDevice.Get());
+	gameObject->SetGeo(geo);
+	gameObject->mTransform.SetPosition(x, y, z);
+
+	return gameObject;
 }
 
 void Engine::InitD3D()
@@ -604,40 +630,52 @@ void Engine::FlushCommandQueue()
 	}
 }
 
-void Engine::Update()
+void Engine::Update(GameTimer gt)
 {
 	Camera camera;
 	camera.Update();
 	input.Update();
-	mGameTimer.Tick();
 
 	//// temporary inputs to move the camera around the center
-	if (input.GetKeyState('Z')) mPhi += .01f;
-	if (input.GetKeyState('S')) mPhi -= .01f;
-	if (input.GetKeyState('Q')) mTheta += .01f;
-	if (input.GetKeyState('D')) mTheta -= .01f;
-	if (input.GetKeyState('A')) mRadius += .001f;
-	if (input.GetKeyState('E')) mRadius -= .001f;
+	if (input.GetKeyState('Z')) mPhi += 1.0f * gt.DeltaTime();
+	if (input.GetKeyState('S')) mPhi -= 1.0f * gt.DeltaTime();
+	if (input.GetKeyState('Q')) mTheta += 1.0f * gt.DeltaTime();
+	if (input.GetKeyState('D')) mTheta -= 1.0f * gt.DeltaTime();
+
+	bool mouseCapture = input.IsCapturingMouse();
+	if (input.GetKeyState('1') == UP) {
+		if (mouseCapture)
+		{
+			input.DisableMouseCapture();
+		}
+		else
+		{
+			input.EnableMouseCapture();
+		}
+	}
+
+	// mouse move
+	if (mouseCapture) {
+		POINT p = input.GetMouseMove();
+		if (p.x != 0) mTheta += -p.x * .3f * gt.DeltaTime();
+		if (p.y != 0) mPhi += -p.y * .3f * gt.DeltaTime();
+	}
 
 	float x = mRadius * sinf(mPhi) * cosf(mTheta);
 	float z = mRadius * sinf(mPhi) * sinf(mTheta);
 	float y = mRadius * cosf(mPhi);
 
 	mView = camera.GetViewMatrix(x, y, z);
-	mProj = camera.GetProjectionMatrix(800, 600);
+	mProj = camera.GetProjectionMatrix(mClientWidth, mClientHeight);
 
 	Manager* mgr = Manager::GetInstance();
 
 	list<GameObject*>& gameObjects = mgr->GetGameObjects();
 
-	float i = 0.1f;
 	for (GameObject* obj : gameObjects) {
 		ObjectConstants objConstants;
-		obj->mTransform.SetPosition(i, 0, 0);
-		obj->mTransform.RotateYaw(10.0f * mGameTimer.TotalTime());
+		//obj->mTransform.RotateYaw(10.0f * gt.TotalTime());
 
-		OutputDebugString(std::to_wstring(mGameTimer.DeltaTime()).c_str() + '\n');
-		i += 1.5f;
 		//XMFLOAT4X4 world = obj->mTransform.mWorldMatrix;
 
 		XMMATRIX world = XMLoadFloat4x4(&obj->mTransform.mWorldMatrix);
@@ -675,7 +713,7 @@ void Engine::Draw()
 {
 	// Reuse the memory associated with command recording.
 	// We can only reset when the associated command lists have finished execution on the GPU.
-	HRESULT hRes = mCommandAllocator->Reset();
+	ThrowIfFailed(mCommandAllocator->Reset());
 
 	// A command list can be reset after it has been added to the command queue via ExecuteCommandList.
 	// Reusing the command list reuses memory.
