@@ -14,6 +14,9 @@ private:
 	Engine engine;
     GameTimer mGameTimer;
     float mTimer;
+	HWND mHWnd = nullptr;
+
 	void Update();
 	void Draw();
+	void CalculateFrameStats();
 };
