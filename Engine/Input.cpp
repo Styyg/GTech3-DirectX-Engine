@@ -4,8 +4,13 @@
 using namespace DirectX;
 
 
-Input::Input()
+Input::Input(HWND hWnd)
 {
+    mHWnd = hWnd;
+
+    //init last mouse pos
+    CaptureMousePos();
+
     mKeyStates.emplace(VK_LBUTTON, NONE);
     mKeyStates.emplace(VK_RBUTTON, NONE);
 }
@@ -17,6 +22,9 @@ Input::~Input()
 
 void Input::Update()
 {
+    CaptureMousePos();
+
+    // key pressed (including mouse buttons)
     for (auto it = mKeyStates.begin(); it != mKeyStates.end(); it++)
     {
         // Si appuyé
@@ -62,17 +70,50 @@ KeyState Input::GetKeyState(int keycode)
     return mKeyStates[keycode];
 }
 
-void Input::CaptureMousePos(HWND hwnd)
+void Input::CaptureMousePos()
 {
-    POINT mousePos;
-    GetCursorPos(&mousePos);
-    ScreenToClient(hwnd, &mousePos);
-    mMouseMove.x = mousePos.x - mLastMousePos.x;
-    mMouseMove.y = mousePos.y - mLastMousePos.y;
-    mLastMousePos = mousePos;
+    if (mCaptureMouse)
+    {
+        POINT mousePos;
+        GetCursorPos(&mousePos);
+        ScreenToClient(mHWnd, &mousePos);
+        CenterCursor();
+
+        mMouseMove.x = mousePos.x - mLastMousePos.x;
+        mMouseMove.y = mousePos.y - mLastMousePos.y;
+    }
 }
 
+void Input::CenterCursor()
+{
+    POINT p;
+    p.x = 1280 * 0.5;
+    p.y = 720 * 0.5;
+
+    mLastMousePos.x = p.x;
+    mLastMousePos.y = p.y;
+
+    ClientToScreen(mHWnd, &p);
+    SetCursorPos(p.x, p.y);
+}
+
+// return delta of mouse pos in a POINT struct
 POINT Input::GetMouseMove()
 {
     return mMouseMove;
+}
+
+void Input::EnableMouseCapture()
+{
+    mCaptureMouse = true;
+    ShowCursor(false); 
+    CenterCursor();
+}
+
+void Input::DisableMouseCapture()
+{
+    mCaptureMouse = false;
+    ShowCursor(true);
+    mMouseMove.x = 0;
+    mMouseMove.y = 0;
 }

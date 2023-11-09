@@ -10,23 +10,36 @@
 #include <DirectXMath.h>
 #include "d3dUtil.h"
 #include "UploadBuffer.h"
-
-#include "ShaderManager.h"
 #include "Input.h"
+#include "Camera.h"
+#include "ShaderManager.h"
+#include "GeometryGenerator.h"
+#include "PSOManager.h"
+#include "GameTimer.h"
 
-using namespace Microsoft::WRL;
-using namespace DirectX;
-using namespace std;
-
-struct Vertex
-{
-    XMFLOAT3 Pos;
-    XMFLOAT4 Color;
-};
+class GameObject;
 
 struct ObjectConstants
 {
-    XMFLOAT4X4 WorldViewProj = MathHelper::Identity4x4();
+    DirectX::XMFLOAT4X4 WorldViewProj = MathHelper::Identity4x4();
+};
+
+struct PassConstants
+{
+    //DirectX::XMFLOAT4X4 View = MathHelper::Identity4x4();
+    //DirectX::XMFLOAT4X4 InvView = MathHelper::Identity4x4();
+    //DirectX::XMFLOAT4X4 Proj = MathHelper::Identity4x4();
+    //DirectX::XMFLOAT4X4 InvProj = MathHelper::Identity4x4();
+    DirectX::XMFLOAT4X4 ViewProj = MathHelper::Identity4x4();
+    //DirectX::XMFLOAT4X4 InvViewProj = MathHelper::Identity4x4();
+    //DirectX::XMFLOAT3 EyePosW = { 0.0f, 0.0f, 0.0f };
+    //float cbPerObjectPad1 = 0.0f;
+    //DirectX::XMFLOAT2 RenderTargetSize = { 0.0f, 0.0f };
+    //DirectX::XMFLOAT2 InvRenderTargetSize = { 0.0f, 0.0f };
+    //float NearZ = 0.0f;
+    //float FarZ = 0.0f;
+    //float TotalTime = 0.0f;
+    //float DeltaTime = 0.0f;
 };
 
 class Engine
@@ -35,7 +48,10 @@ public:
     Engine(HWND hWnd);
     virtual ~Engine();
 
-    void Update();
+    LONG GetClientWidth();
+    LONG GetClientHeight();
+
+    void Update(GameTimer gameTimer);
     void Draw();
     void OnResize();
 
@@ -48,16 +64,12 @@ public:
 
     void RenderTargetView();
     void DescribeDepthStencilBuffer();
-    void BuildShadersAndInputLayout();
-    void BuildConstantBuffers();
     void BuildRootSignature();
     void BuildTriangleGeometry();
-    void BuildPSO(); 
+
+    void CreateForm(GameObject* gameObject, int id, float width = 1.0f, float height = 1.0f, float depth = 1.0f);
     
     void FlushCommandQueue();
-
-    LONG GetClientWidth();
-    LONG GetClientHeight();
 
     ID3D12Resource* CurrentBackBuffer()const;
     D3D12_CPU_DESCRIPTOR_HANDLE CurrentBackBufferView()const;
@@ -68,14 +80,18 @@ public:
     void ExecuteCommandList();
     void Flush();
 
+    void BuildAllGameObjects();
+    void DrawAllGameObjects();
+
+    Camera* GetCam() { return &mCamera; }
+
 private:
     ShaderManager shaderManager;
     
     HWND mHWnd = nullptr;
 
-    // Set true to use 4X MSAA (�4.1.8).  The default is false.
-    bool      m4xMsaaState = false;    // 4X MSAA enabled
-    UINT      m4xMsaaQuality = 0;      // quality level of 4X MSAA
+    bool      m4xMsaaState = false;
+    UINT      m4xMsaaQuality = 0;
 
     UINT64 mFenceValue = 0;
 
@@ -85,48 +101,57 @@ private:
 
     static const int mSwapChainBufferCount = 2;
 
-    unique_ptr<UploadBuffer<ObjectConstants>> mObjectCB = nullptr;
+    std::unique_ptr<UploadBuffer<ObjectConstants>> mObjectCB = nullptr;
 
-    ComPtr<ID3D12Fence> mFence;
-    ComPtr<ID3D12CommandAllocator> mCommandAllocator;
-    ComPtr<ID3D12CommandQueue> mCommandQueue;
-    ComPtr<ID3D12GraphicsCommandList> mCommandList;
-    ComPtr<ID3D12Device> mD3DDevice;
-    ComPtr<IDXGISwapChain> mSwapChain;
-    ComPtr<IDXGIFactory4> mDxgiFactory;
-    ComPtr<ID3D12DescriptorHeap> mRtvHeap;
-    ComPtr<ID3D12DescriptorHeap> mDsvHeap;
-    ComPtr<ID3D12DescriptorHeap> mCbvHeap;
-    ComPtr<ID3D12Resource> mSwapChainBuffer[mSwapChainBufferCount];
-    ComPtr<ID3D12Resource> mDepthStencilBuffer;
-    ComPtr<ID3D12PipelineState> mPSO = nullptr;
-    ComPtr<ID3D12RootSignature> mRootSignature = nullptr;
-    ComPtr<ID3DBlob> mVsByteCode = nullptr;
-    ComPtr<ID3DBlob> mPsByteCode = nullptr;
+    Microsoft::WRL::ComPtr<ID3D12Fence> mFence;
+    Microsoft::WRL::ComPtr<ID3D12CommandAllocator> mCommandAllocator;
+    Microsoft::WRL::ComPtr<ID3D12CommandQueue> mCommandQueue;
+    Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList> mCommandList;
+    Microsoft::WRL::ComPtr<ID3D12Device> mD3DDevice;
+    Microsoft::WRL::ComPtr<IDXGISwapChain> mSwapChain;
+    Microsoft::WRL::ComPtr<IDXGIFactory4> mDxgiFactory;
+    Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> mRtvHeap;
+    Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> mDsvHeap;
+    Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> mCbvHeap;
+    Microsoft::WRL::ComPtr<ID3D12Resource> mSwapChainBuffer[mSwapChainBufferCount];
+    Microsoft::WRL::ComPtr<ID3D12Resource> mDepthStencilBuffer;
+    Microsoft::WRL::ComPtr<ID3D12PipelineState> mPSO = nullptr;
+    Microsoft::WRL::ComPtr<ID3D12RootSignature> mRootSignature = nullptr;
+    Microsoft::WRL::ComPtr<ID3DBlob> mVsByteCode = nullptr;
+    Microsoft::WRL::ComPtr<ID3DBlob> mPsByteCode = nullptr;
 
     UINT64 mCurrentFence = 0;
 
     D3D12_FEATURE_DATA_MULTISAMPLE_QUALITY_LEVELS msQualityLevels;
 
-    vector<D3D12_INPUT_ELEMENT_DESC> mInputLayout;
+    std::vector<D3D12_INPUT_ELEMENT_DESC> mInputLayout;
 
     D3D12_VIEWPORT mViewport;
     D3D12_RECT mScissorRect;
 
-    unique_ptr<MeshGeometry> mTriangleGeo = nullptr;
+    std::unique_ptr<MeshGeometry> mTriangleGeo = nullptr;
 
     DXGI_FORMAT mBackBufferFormat = DXGI_FORMAT_R8G8B8A8_UNORM;
     DXGI_FORMAT mDepthStencilFormat = DXGI_FORMAT_D24_UNORM_S8_UINT;
 
     XMFLOAT4X4 mWorld = MathHelper::Identity4x4();
-    XMFLOAT4X4 mView = MathHelper::Identity4x4();
-    XMFLOAT4X4 mProj = MathHelper::Identity4x4();
+    XMFLOAT4X4 mWorldViewProj = MathHelper::Identity4x4(); // tranposed
+    XMMATRIX mView;
+    XMMATRIX mProj;
 
-    float mTheta = 1.5f * XM_PI;
-    float mPhi = XM_PIDIV4;
-    float mRadius = 5.0f;
+    std::vector<GameObject> mNewGameObbjects;
+    // Generic PSO
+    PSOManager mPsoManager;
+    D3D12_GRAPHICS_PIPELINE_STATE_DESC mBasePsoDesc = {};
 
-    int mClientWidth = 800;
-    int mClientHeight = 600;
+    float mTheta = 1.5f * DirectX::XM_PI;
+    float mPhi = DirectX::XM_PIDIV2;
+    float mRadius = 0.0001f;
+
+    Input input;
+    Camera mCamera;
+
+    int mClientWidth = 1280;
+    int mClientHeight = 720;
     int mCurrentBackBuffer = 0;
 };

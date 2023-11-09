@@ -1,9 +1,14 @@
 #include "Engine.h"
+#include "GameObject.h"
 #include <sstream>
 
-using namespace DirectX;
+#include "Manager.h"
 
-Engine::Engine(HWND hWnd) : mHWnd(hWnd)
+using namespace Microsoft::WRL;
+using namespace DirectX;
+using namespace std;
+
+Engine::Engine(HWND hWnd) : mHWnd(hWnd), input(hWnd)
 {
 	InitD3D();
 	SynchroProcess();
@@ -16,23 +21,36 @@ Engine::Engine(HWND hWnd) : mHWnd(hWnd)
 
 	//RenderTargetView();
 	//DescribeDepthStencilBuffer();
-	BuildShadersAndInputLayout();
-	BuildConstantBuffers();
 	BuildRootSignature();
 
-	ResetCommandList();
+	//ResetCommandList();
 	BuildTriangleGeometry();
-	CloseCommandeList();
-	ExecuteCommandList();
-	Flush();
+	//CloseCommandeList();
+	//ExecuteCommandList();
+	//FlushCommandQueue();
 	// aditionnal free upload buffer
 
-	BuildPSO();
+	BuildAllGameObjects(); 
+	
 }
 
 Engine::~Engine()
 {
 
+}
+
+LONG Engine::GetClientWidth()
+{
+	RECT rect;
+	GetWindowRect(mHWnd, &rect);
+	return rect.right - rect.left;
+}
+
+LONG Engine::GetClientHeight()
+{
+	RECT rect;
+	GetWindowRect(mHWnd, &rect);
+	return rect.bottom - rect.top;
 }
 
 void Engine::OnResize()
@@ -308,7 +326,7 @@ void Engine::CreateDescriptorHeaps()
 
 	// config of CBV desc heap
 	D3D12_DESCRIPTOR_HEAP_DESC cbvHeapDesc;
-	cbvHeapDesc.NumDescriptors = 10;
+	cbvHeapDesc.NumDescriptors = 1000;
 	cbvHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
 	cbvHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
 	cbvHeapDesc.NodeMask = 0;
@@ -337,7 +355,8 @@ D3D12_CPU_DESCRIPTOR_HANDLE Engine::DepthStencilView()const
 
 void Engine::ResetCommandList()
 {
-	mCommandList->Reset(mCommandAllocator.Get(), nullptr);
+	//mCommandList->Reset(mCommandAllocator.Get(), nullptr);
+	mCommandList->Reset(mCommandAllocator.Get(), mPSO.Get());
 }
 
 void Engine::CloseCommandeList()
@@ -353,10 +372,6 @@ void Engine::ExecuteCommandList()
 
 void Engine::Flush()
 {
-	//mD3DDevice->CreateFence(0, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&mFence));
-	//ID3D12CommandList* ppCommandLists[] = { mCommandList.Get() };
-	//mCommandQueue->ExecuteCommandLists(_countof(ppCommandLists), ppCommandLists);
-
 	mFenceValue++;
 	mCommandQueue->Signal(mFence.Get(), mFenceValue);
 
@@ -375,47 +390,96 @@ void Engine::Flush()
 	}
 }
 
-void Engine::BuildShadersAndInputLayout()
+void Engine::BuildAllGameObjects()
 {
-	ByteCode bc = shaderManager.CallStack();
-	mVsByteCode = bc.vsCubeByteCode;
-	mPsByteCode = bc.psCubeByteCode;
-
-	mInputLayout =
+	// Shader
+	vector<D3D12_INPUT_ELEMENT_DESC> mInputLayout =
 	{
 		{"POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0},
 		{"COLOR", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, 12, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0}
 	};
+
+	Shader& myVertexShader = shaderManager.AddShader(L"MyVertexShader", L"../Engine/Shaders/cube_shader.hlsl", "VS", "vs_5_0");
+	Shader& myPixelShader = shaderManager.AddShader(L"MyPixelShader", L"../Engine/Shaders/cube_shader.hlsl", "PS", "ps_5_0");
+
+	Shader* vertexShader = shaderManager.GetShader(L"MyVertexShader");
+	Shader* pixelShader = shaderManager.GetShader(L"MyPixelShader");
+
+	ComPtr<ID3DBlob> vertexShaderByteCode = vertexShader->GetShaderByteCode();
+	ComPtr<ID3DBlob> pixelShaderByteCode = pixelShader->GetShaderByteCode();
+
+	// Shaders
+	mBasePsoDesc.VS = { reinterpret_cast<BYTE*>(vertexShaderByteCode->GetBufferPointer()), vertexShaderByteCode->GetBufferSize() };
+	mBasePsoDesc.PS = { reinterpret_cast<BYTE*>(pixelShaderByteCode->GetBufferPointer()), pixelShaderByteCode->GetBufferSize() };
+
+	// États par défaut pour le reste du PSO
+	mBasePsoDesc.BlendState = CD3DX12_BLEND_DESC(D3D12_DEFAULT);
+	mBasePsoDesc.SampleMask = UINT_MAX;
+	mBasePsoDesc.RasterizerState = CD3DX12_RASTERIZER_DESC(D3D12_DEFAULT);
+	mBasePsoDesc.DepthStencilState = CD3DX12_DEPTH_STENCIL_DESC(D3D12_DEFAULT);
+
+	// Formats de rendu
+	mBasePsoDesc.RTVFormats[0] = mBackBufferFormat;
+	mBasePsoDesc.DSVFormat = mDepthStencilFormat;
+	mBasePsoDesc.SampleDesc.Count = 1;
+	mBasePsoDesc.SampleDesc.Quality = 0;
+
+	// Nombre de RenderTargets
+	mBasePsoDesc.NumRenderTargets = 1;
+
+	// Primitive Topology
+	mBasePsoDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
+
+	// Input Layout
+	mBasePsoDesc.InputLayout = { mInputLayout.data(), (UINT)mInputLayout.size() };
+
+	// Root Signature
+	mBasePsoDesc.pRootSignature = mRootSignature.Get();
+
+	Manager* mgr = Manager::GetInstance();
+
+	GameObject* triangle = new GameObject;
+	mgr->AddGameObject(triangle);
+
+	ID3D12PipelineState* objPSO = mPsoManager.GetOrCreatePSO(L"ObjPSO", mBasePsoDesc, mD3DDevice.Get());
+	triangle->SetPSO(objPSO);
+	triangle->CreateCB(mD3DDevice.Get());
+	triangle->SetGeo(mTriangleGeo.get());
+	triangle->mTransform.SetPosition(0, 0, -1000);
 }
 
-void Engine::BuildConstantBuffers()
+void Engine::DrawAllGameObjects()
 {
-	mObjectCB = std::make_unique<UploadBuffer<ObjectConstants>>(mD3DDevice.Get(), 1, true);
+	Manager* mgr = Manager::GetInstance();
+	vector<GameObject*>& gameObjects = mgr->GetGameObjects();
+	
+	float i = 0.1f;
+	for (GameObject* obj : gameObjects) {
+		// Utilisez le PSO spécifique à l'objet
+		ID3D12PipelineState* pso = obj->GetPSO();
+		if (pso != nullptr) {
+			mCommandList->SetPipelineState(pso);
+		}
+	
+		mCommandList->SetGraphicsRootSignature(mRootSignature.Get());
+		mCommandList->SetGraphicsRootConstantBufferView(0, obj->mObjectCB->Resource()->GetGPUVirtualAddress());
 
-	UINT objCBByteSize = d3dUtil::CalcConstantBufferByteSize(sizeof(ObjectConstants));
-
-	D3D12_GPU_VIRTUAL_ADDRESS cbAddress = mObjectCB->Resource()->GetGPUVirtualAddress();
-	// Offset to the ith object constant buffer in the buffer.
-	int boxCBufIndex = 0;
-	cbAddress += boxCBufIndex * objCBByteSize;
-
-	D3D12_CONSTANT_BUFFER_VIEW_DESC cbvDesc;
-	cbvDesc.BufferLocation = cbAddress;
-	cbvDesc.SizeInBytes = d3dUtil::CalcConstantBufferByteSize(sizeof(ObjectConstants));
-
-	mD3DDevice->CreateConstantBufferView(&cbvDesc, mCbvHeap->GetCPUDescriptorHandleForHeapStart());
+		// Assumer que chaque GameObject sait comment configurer ses propres buffers
+		obj->SetupBuffers(mCommandList.Get());
+	
+		// Assumer que chaque GameObject sait comment dessiner lui-même
+		obj->Draw(mCommandList.Get());
+	}
 }
 
 void Engine::BuildRootSignature()
 {
 	CD3DX12_ROOT_PARAMETER slotRootParameter[1];
+	 slotRootParameter[0].InitAsConstantBufferView(0);
 
-	//slotRootParameter[0].InitAsConstantBufferView(0);
-	 
-	// Create a single descriptor table of CBVs.
-	CD3DX12_DESCRIPTOR_RANGE cbvTable; 
-	cbvTable.Init(D3D12_DESCRIPTOR_RANGE_TYPE_CBV, 1, 0);
-	slotRootParameter[0].InitAsDescriptorTable(1, &cbvTable);
+	 //CD3DX12_DESCRIPTOR_RANGE cbvTable1;
+	 //cbvTable1.Init(D3D12_DESCRIPTOR_RANGE_TYPE_CBV, 1, 1);
+	 //slotRootParameter[1].InitAsDescriptorTable(1, &cbvTable1);
 
 	// A root signature is an array of root parameters.
 	CD3DX12_ROOT_SIGNATURE_DESC rootSigDesc(1, slotRootParameter, 0, nullptr, D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);
@@ -428,42 +492,24 @@ void Engine::BuildRootSignature()
 	ThrowIfFailed(mD3DDevice->CreateRootSignature(0, serializedRootSig->GetBufferPointer(), serializedRootSig->GetBufferSize(), IID_PPV_ARGS(&mRootSignature)));
 }
 
-//
-
 void Engine::BuildTriangleGeometry()
 {
-	std::array<Vertex, 3> vertices =
-	{
-		Vertex({ XMFLOAT3(-1.0f, -1.0f, 0.0f), XMFLOAT4(Colors::Red) }),
-		Vertex({ XMFLOAT3(+0.0f, +1.0f, 0.0f), XMFLOAT4(Colors::Green) }),
-		Vertex({ XMFLOAT3(+1.0f, -1.0f, 0.0f), XMFLOAT4(Colors::Blue) })
-	};
+	ResetCommandList();
 
-	std::array<std::uint16_t, 6> indices =
-	{
-		// front face
-		0, 1, 2,
-		// back face
-		0, 2, 1,
-	};
+	GeometryGenerator geoGen;
+	Mesh triangle = geoGen.CreateTriangle3D(1.0f, 1.0f, 1.0f);
 
-	const UINT vbByteSize = (UINT)vertices.size() * sizeof(Vertex);
-	const UINT ibByteSize = (UINT)indices.size() * sizeof(std::uint16_t);
+	const UINT vbByteSize = (UINT)triangle.vertices.size() * sizeof(Vertex);
+	const UINT ibByteSize = (UINT)triangle.indices.size() * sizeof(std::uint16_t);
 
-	mTriangleGeo = std::make_unique<MeshGeometry>();
+	mTriangleGeo = make_unique<MeshGeometry>();
 	mTriangleGeo->Name = "triGeo";
 
-	//ThrowIfFailed(D3DCreateBlob(vbByteSize, &mTriangleGeo->VertexBufferCPU));
-	//CopyMemory(mTriangleGeo->VertexBufferCPU->GetBufferPointer(), vertices.data(), vbByteSize);
-
-	//ThrowIfFailed(D3DCreateBlob(ibByteSize, &mTriangleGeo->IndexBufferCPU));
-	//CopyMemory(mTriangleGeo->IndexBufferCPU->GetBufferPointer(), indices.data(), ibByteSize);
-
 	mTriangleGeo->VertexBufferGPU = d3dUtil::CreateDefaultBuffer(mD3DDevice.Get(),
-		mCommandList.Get(), vertices.data(), vbByteSize, mTriangleGeo->VertexBufferUploader);
+		mCommandList.Get(), triangle.vertices.data(), vbByteSize, mTriangleGeo->VertexBufferUploader);
 
 	mTriangleGeo->IndexBufferGPU = d3dUtil::CreateDefaultBuffer(mD3DDevice.Get(),
-		mCommandList.Get(), indices.data(), ibByteSize, mTriangleGeo->IndexBufferUploader);
+		mCommandList.Get(), triangle.indices.data(), ibByteSize, mTriangleGeo->IndexBufferUploader);
 
 	mTriangleGeo->VertexByteStride = sizeof(Vertex);
 	mTriangleGeo->VertexBufferByteSize = vbByteSize;
@@ -471,54 +517,67 @@ void Engine::BuildTriangleGeometry()
 	mTriangleGeo->IndexBufferByteSize = ibByteSize;
 
 	SubmeshGeometry submesh;
-	submesh.IndexCount = (UINT)indices.size();
+	submesh.IndexCount = (UINT)triangle.indices.size();
 	submesh.StartIndexLocation = 0;
 	submesh.BaseVertexLocation = 0;
 
 	mTriangleGeo->DrawArgs["triangle"] = submesh;
+
+	mTriangleGeo->indexCount = submesh.IndexCount;
+
+	CloseCommandeList();
+	ExecuteCommandList();
+	FlushCommandQueue();
 }
 
-void Engine::BuildPSO()
+void Engine::CreateForm(GameObject* gameObject, int id, float width, float height, float depth)
 {
-	D3D12_GRAPHICS_PIPELINE_STATE_DESC psoDesc;
-	ZeroMemory(&psoDesc, sizeof(D3D12_GRAPHICS_PIPELINE_STATE_DESC));
-	psoDesc.InputLayout = { mInputLayout.data(), (UINT)mInputLayout.size() };
-	psoDesc.pRootSignature = mRootSignature.Get();
-	psoDesc.VS =
-	{
-		reinterpret_cast<BYTE*>(mVsByteCode->GetBufferPointer()),
-		mVsByteCode->GetBufferSize()
-	};
-	psoDesc.PS =
-	{
-		reinterpret_cast<BYTE*>(mPsByteCode->GetBufferPointer()),
-		mPsByteCode->GetBufferSize()
-	};
-	psoDesc.RasterizerState = CD3DX12_RASTERIZER_DESC(D3D12_DEFAULT);
-	psoDesc.BlendState = CD3DX12_BLEND_DESC(D3D12_DEFAULT);
-	psoDesc.DepthStencilState = CD3DX12_DEPTH_STENCIL_DESC(D3D12_DEFAULT);
-	psoDesc.SampleMask = UINT_MAX;
-	psoDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
-	psoDesc.NumRenderTargets = 1;
-	psoDesc.RTVFormats[0] = mBackBufferFormat;
-	psoDesc.SampleDesc.Count = m4xMsaaState ? 4 : 1;
-	psoDesc.SampleDesc.Quality = m4xMsaaState ? (m4xMsaaQuality - 1) : 0;
-	psoDesc.DSVFormat = mDepthStencilFormat;
-	ThrowIfFailed(mD3DDevice->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(&mPSO)));
-}
+	ResetCommandList();
 
-LONG Engine::GetClientWidth() 
-{
-	RECT rect;
-	GetWindowRect(mHWnd, &rect);
-	return rect.right - rect.left;
-}
+	GeometryGenerator geoGen;
+	Mesh mesh;
+	if(id == 0)
+		mesh = geoGen.CreateCube(width, height, depth);
+	else
+		mesh = geoGen.CreateTriangle3D(width, height, depth);
 
-LONG Engine::GetClientHeight() 
-{
-	RECT rect;
-	GetWindowRect(mHWnd, &rect);
-	return rect.bottom - rect.top;
+	const UINT vbByteSize = (UINT)mesh.vertices.size() * sizeof(Vertex);
+	const UINT ibByteSize = (UINT)mesh.indices.size() * sizeof(std::uint16_t);
+
+	MeshGeometry* geo = new MeshGeometry;
+	geo->Name = "geo";
+
+	geo->VertexBufferGPU = d3dUtil::CreateDefaultBuffer(mD3DDevice.Get(),
+		mCommandList.Get(), mesh.vertices.data(), vbByteSize, geo->VertexBufferUploader);
+
+	geo->IndexBufferGPU = d3dUtil::CreateDefaultBuffer(mD3DDevice.Get(),
+		mCommandList.Get(), mesh.indices.data(), ibByteSize, geo->IndexBufferUploader);
+
+	geo->VertexByteStride = sizeof(Vertex);
+	geo->VertexBufferByteSize = vbByteSize;
+	geo->IndexFormat = DXGI_FORMAT_R16_UINT;
+	geo->IndexBufferByteSize = ibByteSize;
+
+	SubmeshGeometry submesh;
+	submesh.IndexCount = (UINT)mesh.indices.size();
+	submesh.StartIndexLocation = 0;
+	submesh.BaseVertexLocation = 0;
+
+	geo->DrawArgs["mesh"] = submesh;
+
+	geo->indexCount = submesh.IndexCount;
+
+	CloseCommandeList();
+	ExecuteCommandList();
+	FlushCommandQueue();
+
+	Manager* mgr = Manager::GetInstance();
+	mgr->AddGameObject(gameObject);
+
+	ID3D12PipelineState* objPSO = mPsoManager.GetOrCreatePSO(L"ObjPSO", mBasePsoDesc, mD3DDevice.Get());
+	gameObject->SetPSO(objPSO);
+	gameObject->CreateCB(mD3DDevice.Get());
+	gameObject->SetGeo(geo);
 }
 
 void Engine::InitD3D()
@@ -571,34 +630,83 @@ void Engine::FlushCommandQueue()
 	}
 }
 
-void Engine::Update()
+void Engine::Update(GameTimer gt)
 {
-	// Convert Spherical to Cartesian coordinates.
+	Manager* mgr = Manager::GetInstance();
+	mgr->Update(gt);
+	input.Update();
+
+	// temporary inputs to move the camera around the center
+	if (input.GetKeyState('Z')) mPhi += 1.0f * gt.DeltaTime();
+	if (input.GetKeyState('S')) mPhi -= 1.0f * gt.DeltaTime();
+	if (input.GetKeyState('Q')) mTheta += 1.0f * gt.DeltaTime();
+	if (input.GetKeyState('D')) mTheta -= 1.0f * gt.DeltaTime();
+
+	bool mouseCapture = input.IsCapturingMouse();
+	if (input.GetKeyState('1') == UP) {
+		if (mouseCapture)
+		{
+			input.DisableMouseCapture();
+		}
+		else
+		{
+			input.EnableMouseCapture();
+		}
+	}
+
+	// mouse move
+	if (mouseCapture) {
+		POINT p = input.GetMouseMove();
+		if (p.x != 0) mTheta += -p.x * .3f * gt.DeltaTime();
+		if (p.y != 0) mPhi += -p.y * .3f * gt.DeltaTime();
+	}
+
 	float x = mRadius * sinf(mPhi) * cosf(mTheta);
 	float z = mRadius * sinf(mPhi) * sinf(mTheta);
 	float y = mRadius * cosf(mPhi);
 
-	x = 0;
-	y = 0;
-	z = -4;
+	mCamera.SetPosition(x, y, z);
+	mCamera.SetLookAt(0, 0, 0);
+	mView = mCamera.GetViewMatrix();
+	mProj = mCamera.GetProjectionMatrix(mClientWidth, mClientHeight);
 
-	// Build the view matrix.
-	XMVECTOR pos = XMVectorSet(x, y, z, 1.0f);
-	XMVECTOR target = XMVectorZero();
-	XMVECTOR up = XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f);
+	vector<GameObject*>& gameObjects = mgr->GetGameObjects();
 
-	XMMATRIX view = XMMatrixLookAtLH(pos, target, up);
-	XMStoreFloat4x4(&mView, view);
+	for (GameObject* obj : gameObjects) {
+		ObjectConstants objConstants;
+		//obj->mTransform.RotateYaw(10.0f * gt.TotalTime());
 
-	XMMATRIX proj = XMMatrixPerspectiveFovLH(0.25f * MathHelper::Pi, 800/600.0f, 0.5f, 1000.0f);
+		//XMFLOAT4X4 world = obj->mTransform.mWorldMatrix;
 
-	XMMATRIX world = XMLoadFloat4x4(&mWorld);
-	XMMATRIX worldViewProj = world * view * proj;
+		XMMATRIX world = XMLoadFloat4x4(&obj->mTransform.mWorldMatrix);
+		XMMATRIX worldViewProj = world * mView * mProj;
 
-	// Update the constant buffer with the latest worldViewProj matrix.
-	ObjectConstants objConstants;
-	XMStoreFloat4x4(&objConstants.WorldViewProj, XMMatrixTranspose(worldViewProj));
-	mObjectCB->CopyData(0, objConstants);
+		//XMStoreFloat4x4(&mWorldViewProj, XMMatrixTranspose(worldViewProj));
+		XMStoreFloat4x4(&objConstants.WorldViewProj, XMMatrixTranspose(worldViewProj));
+		//objConstants.WorldViewProj = mWorldViewProj;
+		obj->mObjectCB->CopyData(0, objConstants);
+	}
+
+
+
+	//// Build the view matrix.
+	//XMVECTOR pos = XMVectorSet(x, y, z, 1.0f);
+	//XMVECTOR target = XMVectorZero();
+	//XMVECTOR up = XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f);
+
+	//XMMATRIX view = XMMatrixLookAtLH(pos, target, up);
+	//XMStoreFloat4x4(&mView, view);
+
+	//XMMATRIX proj = XMMatrixPerspectiveFovLH(0.25f * MathHelper::Pi, 800/600.0f, 0.5f, 1000.0f);
+
+	// Mise à jour de la matrice de vue et de projection dans le shader
+	//XMMATRIX world = XMLoadFloat4x4(&mWorld);
+	//XMMATRIX worldViewProj = world * view * proj;
+	//XMStoreFloat4x4(&mWorldViewProj, XMMatrixTranspose(worldViewProj));
+
+	//ObjectConstants objConstants;
+	//XMStoreFloat4x4(&objConstants.WorldViewProj, XMMatrixTranspose(worldViewProj));
+	//mObjectCB->CopyData(0, objConstants);
 }
 
 void Engine::Draw()
@@ -609,7 +717,8 @@ void Engine::Draw()
 
 	// A command list can be reset after it has been added to the command queue via ExecuteCommandList.
 	// Reusing the command list reuses memory.
-	ThrowIfFailed(mCommandList->Reset(mCommandAllocator.Get(), mPSO.Get()));
+
+	ThrowIfFailed(mCommandList->Reset(mCommandAllocator.Get(), nullptr));
 
 	// Indicate a state transition on the resource usage.
 	mCommandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(CurrentBackBuffer(),
@@ -628,13 +737,8 @@ void Engine::Draw()
 	ID3D12DescriptorHeap* descriptorHeaps[] = {mCbvHeap.Get()};
 	mCommandList->SetDescriptorHeaps(_countof(descriptorHeaps), descriptorHeaps);
 
-	mCommandList->SetGraphicsRootSignature(mRootSignature.Get());
-	mCommandList->IASetVertexBuffers(0, 1, &mTriangleGeo->VertexBufferView());
-	mCommandList->IASetIndexBuffer(&mTriangleGeo->IndexBufferView());
-	mCommandList->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-	mCommandList->SetGraphicsRootDescriptorTable(0, mCbvHeap->GetGPUDescriptorHandleForHeapStart());
-	mCommandList->DrawIndexedInstanced(mTriangleGeo->DrawArgs["triangle"].IndexCount, 1, 0, 0, 0);
-
+	DrawAllGameObjects();
+	
 	// Indicate a state transition on the resource usage.
 	mCommandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(CurrentBackBuffer(),
 		D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PRESENT));

@@ -1,4 +1,5 @@
 #include "Engine.h"
+#include "Game.h"
 #include <sstream>
 
 LRESULT CALLBACK WindowProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
@@ -9,24 +10,24 @@ LRESULT CALLBACK WindowProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 	case WM_CLOSE:
 		PostQuitMessage(0);
 		break;
-	case WM_KEYDOWN:
-		if (wParam == 'F')
-		{
-			SetWindowText(hWnd, L"Ta mere");
-		}
-		break;
-	case WM_KEYUP:
-		if (wParam == 'F')
-		{
-			SetWindowText(hWnd, L"Game Window");
-		}
-		break;
-	case WM_LBUTTONDOWN:
-		const POINTS pt = MAKEPOINTS(lParam);
-		std::wstringstream oss;
-		oss << "(" << pt.x << "," << pt.y << ")";
-		SetWindowText(hWnd, oss.str().c_str());
-		break;
+	//case WM_KEYDOWN:
+	//	if (wParam == 'F')
+	//	{
+	//		SetWindowText(hWnd, L"Hehe");
+	//	}
+	//	break;
+	//case WM_KEYUP:
+	//	if (wParam == 'F')
+	//	{
+	//		SetWindowText(hWnd, L"Game Window");
+	//	}
+	//	break;
+	//case WM_LBUTTONDOWN:
+	//	const POINTS pt = MAKEPOINTS(lParam);
+	//	std::wstringstream oss;
+	//	oss << "(" << pt.x << "," << pt.y << ")";
+	//	SetWindowText(hWnd, oss.str().c_str());
+	//	break;
 	}
 
 	return DefWindowProc(hWnd, msg, wParam, lParam);
@@ -40,8 +41,8 @@ int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 #endif
 
 	const auto pClassName = L"GameWnd";    
-	int clientWidth = 800;
-	int clientHeight = 600;
+	int clientWidth = 1280;
+	int clientHeight = 720;
 
 	// register window class
 	WNDCLASSEX wc = { 0 };
@@ -78,27 +79,10 @@ int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 
 	try
 	{
-		Engine appEngine(hWnd);
+		Game game(hWnd);
 
-		MSG msg = { 0 };
-
-		while (msg.message != WM_QUIT)
-		{
-			// If there are Window messages then process them.
-			if (PeekMessage(&msg, 0, 0, 0, PM_REMOVE))
-			{
-				TranslateMessage(&msg);
-				DispatchMessage(&msg);
-			}
-			// Otherwise, do animation/game stuff.
-			else
-			{
-				appEngine.Update();
-				appEngine.Draw();
-			}
-		}
-
-		return (int)msg.wParam;
+		// Start the game loop
+		game.Run();
 	}
 	catch (DxException& e)
 	{
