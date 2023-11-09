@@ -57,7 +57,6 @@ bool GameObject::HasCollider() {
     }
 }
 
-
 //void GameObject::AddMesh(Mesh mesh)
 //{
 //	mCmps.emplace(Component::MESH, mesh);

@@ -21,4 +21,7 @@ private:
 	void Update();
 	void Draw();
 	void CalculateFrameStats();
+
+	//float speed;
+	//Camera cam;
 };
