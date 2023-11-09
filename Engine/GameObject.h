@@ -15,7 +15,7 @@ public:
 	GameObject();
 	~GameObject();
 
-	void AddComponent(Component component);
+	//void AddComponent(Component component);
 
 	// CB
 	void CreateCB(ID3D12Device* pDevice);
@@ -32,8 +32,8 @@ public:
 	//
 
 	void Render();
-	void Update();
-	void AddCollider(Collider* collider);
+	virtual void Update(GameTimer gt);
+	void AddCollider();
 	void AddRigidbody(Rigidbody* rigidbody);
 	Collider* GetCollider();
 	bool HasCollider();

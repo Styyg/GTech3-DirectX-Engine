@@ -1,8 +1,12 @@
 #pragma once
-#include "Entity.h"
+#include "GameObject.h"
 
-class Enemy : public Entity
+class Enemy : public GameObject
 {
-	//pattern movement
+//pattern movement
+public:
+	Enemy();
+	~Enemy();
+	virtual void Update(GameTimer mGameTimer);
 };
 

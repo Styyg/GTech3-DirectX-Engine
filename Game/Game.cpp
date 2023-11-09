@@ -1,5 +1,4 @@
 #include "Game.h"
-#include "GameObject.h"
 
 Game::Game(HWND hWnd) : engine(hWnd)
 {
@@ -43,18 +42,12 @@ void Game::Update()
         float posY = rand() % 40 - 20;
         float posZ = rand() % 30 + 15;
         //spawn an ennemy
-        GameObject* mGameObject = engine.CreateCube(1.0, 1.0, 1.0, posX, posY, posZ);
-        mGameObjectsList.push_back(mGameObject);
+        Enemy* mEnemy = new Enemy;
+        engine.CreateCube(mEnemy,1.0, 1.0, 1.0, posX, posY, posZ);
+        mEnemiesList.push_back(mEnemy);
         /*std::wstring str = std::to_wstring(posZ);
         OutputDebugString(str.c_str());*/
         mTimer = mGameTimer.TotalTime();
-    }
-    for (int i = 0; i < mGameObjectsList.size(); i++)
-    {
-        float move = 0.05*cosf(mGameTimer.TotalTime() * 0.8);
-        float move2 = 0.05 *sinf(mGameTimer.TotalTime() * 0.8);
-        mGameObjectsList[i]->mTransform.TranslateInWorld(move, move2, 0); 
-        /*mGameObjectsList[i]->mTransform.SetPosition(move, move2, 6);*/
     }
 }
 

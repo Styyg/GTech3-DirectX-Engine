@@ -536,7 +536,7 @@ void Engine::BuildTriangleGeometry()
 	ExecuteCommandList();
 }
 
-GameObject* Engine::CreateCube(float width, float height, float depth, float x, float y, float z)
+void Engine::CreateCube(GameObject* gameObject,float width, float height, float depth, float x, float y, float z)
 {
 	ResetCommandList();
 
@@ -573,7 +573,6 @@ GameObject* Engine::CreateCube(float width, float height, float depth, float x, 
 	ExecuteCommandList();
 
 	Manager* mgr = Manager::GetInstance();
-	GameObject* gameObject = new GameObject;
 	mgr->AddGameObject(gameObject);
 
 	ID3D12PipelineState* objPSO = mPsoManager.GetOrCreatePSO(L"ObjPSO", mBasePsoDesc, mD3DDevice.Get());
@@ -581,8 +580,6 @@ GameObject* Engine::CreateCube(float width, float height, float depth, float x, 
 	gameObject->CreateCB(mD3DDevice.Get());
 	gameObject->SetGeo(geo);
 	gameObject->mTransform.SetPosition(x, y, z);
-
-	return gameObject;
 }
 
 void Engine::InitD3D()
@@ -637,6 +634,8 @@ void Engine::FlushCommandQueue()
 
 void Engine::Update(GameTimer gt)
 {
+	Manager* mgr = Manager::GetInstance();
+	mgr->Update(gt);
 	Camera camera;
 	camera.Update();
 	input.Update();
@@ -655,8 +654,6 @@ void Engine::Update(GameTimer gt)
 
 	mView = camera.GetViewMatrix(x, y, z);
 	mProj = camera.GetProjectionMatrix(800, 600);
-
-	Manager* mgr = Manager::GetInstance();
 
 	list<GameObject*>& gameObjects = mgr->GetGameObjects();
 
