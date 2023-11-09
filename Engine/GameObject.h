@@ -32,7 +32,7 @@ public:
 	//
 
 	void Render();
-	void Update();
+	virtual void Update();
 	void AddCollider(Collider* collider);
 	void AddRigidbody(Rigidbody* rigidbody);
 	Collider* GetCollider();

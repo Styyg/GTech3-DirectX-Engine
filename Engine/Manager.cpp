@@ -22,36 +22,27 @@ void Manager::ClearGameObjects()
 
 void Manager::Update()
 {
-	//float i = 0.1f;
-	//for (GameObject* obj : gameObjects) {
+	for (GameObject* obj : gameObjects) {
+		obj->Update();
+	}
 
-	//	ObjectConstants objConstants;
-	//	obj->mTransform.SetPosition(i, 0, 0);
-	//	i += 1.0f;
-	//	//XMFLOAT4X4 world = obj->mTransform.mWorldMatrix;
-
-	//	XMMATRIX world = XMLoadFloat4x4(&obj->mTransform.mWorldMatrix);
-	//	XMMATRIX worldViewProj = world * mView * mProj;
-
-	//	//XMStoreFloat4x4(&mWorldViewProj, XMMatrixTranspose(worldViewProj));
-	//	XMStoreFloat4x4(&objConstants.WorldViewProj, XMMatrixTranspose(worldViewProj));
-	//	//objConstants.WorldViewProj = mWorldViewProj;
-	//	obj->mObjectCB->CopyData(0, objConstants);
-
-		//obj->Update();
-
-		// Update Object pass constants
-		//PassConstants passConstants;
-		//XMMATRIX proj = XMMatrixPerspectiveFovLH(0.25f * MathHelper::Pi, 800.f/600, 1.0f, 1000.0f);
-
-		//XMMATRIX viewProj = XMMatrixMultiply(view, proj);
-		//XMStoreFloat4x4(&passConstants.ViewProj, XMMatrixTranspose(viewProj));
-
-		//obj->mPassConstants->CopyData(0, passConstants);
-	//}
+	// Collision
+    for (size_t i = 0; i < gameObjects.size(); ++i) {
+        for (size_t k = i + 1; k < gameObjects.size(); ++k) {
+            if (gameObjects[i]->HasCollider() && gameObjects[k]->HasCollider() &&
+                gameObjects[i]->GetCollider()->IsColliding(*gameObjects[k])) {
+                delete gameObjects[i];
+                delete gameObjects[k];
+                gameObjects.erase(gameObjects.begin() + k);
+                gameObjects.erase(gameObjects.begin() + i);
+                i = 0; // Restart the iteration after removal
+                break;  // Exit the inner loop after a collision is found
+            }
+        }
+    }
 }
 
-list<GameObject*>& Manager::GetGameObjects()
+vector<GameObject*>& Manager::GetGameObjects()
 {
 	return gameObjects;
 }

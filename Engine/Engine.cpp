@@ -451,7 +451,7 @@ void Engine::BuildAllGameObjects()
 void Engine::DrawAllGameObjects()
 {
 	Manager* mgr = Manager::GetInstance();
-	list<GameObject*>& gameObjects = mgr->GetGameObjects();
+	vector<GameObject*>& gameObjects = mgr->GetGameObjects();
 	
 	float i = 0.1f;
 	for (GameObject* obj : gameObjects) {
@@ -632,6 +632,8 @@ void Engine::FlushCommandQueue()
 
 void Engine::Update(GameTimer gt)
 {
+	Manager* mgr = Manager::GetInstance();
+	mgr->Update();
 	Camera camera;
 	camera.Update();
 	input.Update();
@@ -668,9 +670,7 @@ void Engine::Update(GameTimer gt)
 	mView = camera.GetViewMatrix(x, y, z);
 	mProj = camera.GetProjectionMatrix(mClientWidth, mClientHeight);
 
-	Manager* mgr = Manager::GetInstance();
-
-	list<GameObject*>& gameObjects = mgr->GetGameObjects();
+	vector<GameObject*>& gameObjects = mgr->GetGameObjects();
 
 	for (GameObject* obj : gameObjects) {
 		ObjectConstants objConstants;
