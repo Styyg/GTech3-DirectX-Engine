@@ -144,11 +144,11 @@ private:
 
     float mTheta = 1.5f * DirectX::XM_PI;
     float mPhi = DirectX::XM_PIDIV2;
-    float mRadius = 5.0f;
+    float mRadius = 0.001f;
 
     Input input;
 
-    int mClientWidth = 800;
-    int mClientHeight = 600;
+    int mClientWidth = 1280;
+    int mClientHeight = 720;
     int mCurrentBackBuffer = 0;
 };

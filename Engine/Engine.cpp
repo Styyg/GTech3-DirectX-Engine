@@ -27,7 +27,7 @@ Engine::Engine(HWND hWnd) : mHWnd(hWnd), input(hWnd)
 	BuildTriangleGeometry();
 	//CloseCommandeList();
 	//ExecuteCommandList();
-	Flush();
+	//FlushCommandQueue();
 	// aditionnal free upload buffer
 
 	BuildAllGameObjects(); 
@@ -390,7 +390,6 @@ void Engine::Flush()
 	}
 }
 
-//void Engine::BuildPSO()
 void Engine::BuildAllGameObjects()
 {
 	// Shader
@@ -439,20 +438,14 @@ void Engine::BuildAllGameObjects()
 
 	Manager* mgr = Manager::GetInstance();
 
-	GameObject* cube = new GameObject;
-	mgr->AddGameObject(cube);
-
-	GameObject* obj2 = new GameObject;
-	mgr->AddGameObject(obj2);
+	GameObject* triangle = new GameObject;
+	mgr->AddGameObject(triangle);
 
 	ID3D12PipelineState* objPSO = mPsoManager.GetOrCreatePSO(L"ObjPSO", mBasePsoDesc, mD3DDevice.Get());
-	cube->SetPSO(objPSO);
-	cube->CreateCB(mD3DDevice.Get());
-	cube->SetGeo(mTriangleGeo.get());
-
-	obj2->SetPSO(objPSO);
-	obj2->CreateCB(mD3DDevice.Get());
-	obj2->SetGeo(mTriangleGeo.get());
+	triangle->SetPSO(objPSO);
+	triangle->CreateCB(mD3DDevice.Get());
+	triangle->SetGeo(mTriangleGeo.get());
+	triangle->mTransform.SetPosition(0, 0, -1000);
 }
 
 void Engine::DrawAllGameObjects()
@@ -534,6 +527,7 @@ void Engine::BuildTriangleGeometry()
 
 	CloseCommandeList();
 	ExecuteCommandList();
+	FlushCommandQueue();
 }
 
 void Engine::CreateCube(GameObject* gameObject,float width, float height, float depth, float x, float y, float z)
@@ -571,6 +565,7 @@ void Engine::CreateCube(GameObject* gameObject,float width, float height, float 
 
 	CloseCommandeList();
 	ExecuteCommandList();
+	FlushCommandQueue();
 
 	Manager* mgr = Manager::GetInstance();
 	mgr->AddGameObject(gameObject);
@@ -645,22 +640,38 @@ void Engine::Update(GameTimer gt)
 	if (input.GetKeyState('S')) mPhi -= 1.0f * gt.DeltaTime();
 	if (input.GetKeyState('Q')) mTheta += 1.0f * gt.DeltaTime();
 	if (input.GetKeyState('D')) mTheta -= 1.0f * gt.DeltaTime();
-	if (input.GetKeyState('A')) mRadius += 1.0f * gt.DeltaTime();
-	if (input.GetKeyState('E')) mRadius -= 1.0f * gt.DeltaTime();
+
+	bool mouseCapture = input.IsCapturingMouse();
+	if (input.GetKeyState('1') == UP) {
+		if (mouseCapture)
+		{
+			input.DisableMouseCapture();
+		}
+		else
+		{
+			input.EnableMouseCapture();
+		}
+	}
+
+	// mouse move
+	if (mouseCapture) {
+		POINT p = input.GetMouseMove();
+		if (p.x != 0) mTheta += -p.x * .3f * gt.DeltaTime();
+		if (p.y != 0) mPhi += -p.y * .3f * gt.DeltaTime();
+	}
 
 	float x = mRadius * sinf(mPhi) * cosf(mTheta);
 	float z = mRadius * sinf(mPhi) * sinf(mTheta);
 	float y = mRadius * cosf(mPhi);
 
 	mView = camera.GetViewMatrix(x, y, z);
-	mProj = camera.GetProjectionMatrix(800, 600);
+	mProj = camera.GetProjectionMatrix(mClientWidth, mClientHeight);
 
 	list<GameObject*>& gameObjects = mgr->GetGameObjects();
 
 	for (GameObject* obj : gameObjects) {
 		ObjectConstants objConstants;
 		//obj->mTransform.RotateYaw(10.0f * gt.TotalTime());
-		//obj->mTransform.RotateYaw(10.0f);
 
 		//XMFLOAT4X4 world = obj->mTransform.mWorldMatrix;
 
@@ -699,7 +710,7 @@ void Engine::Draw()
 {
 	// Reuse the memory associated with command recording.
 	// We can only reset when the associated command lists have finished execution on the GPU.
-	HRESULT hRes = mCommandAllocator->Reset();
+	ThrowIfFailed(mCommandAllocator->Reset());
 
 	// A command list can be reset after it has been added to the command queue via ExecuteCommandList.
 	// Reusing the command list reuses memory.
