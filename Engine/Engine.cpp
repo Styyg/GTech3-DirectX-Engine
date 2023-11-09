@@ -643,7 +643,7 @@ void Engine::Update(GameTimer gt)
 	if (input.GetKeyState('D')) mTheta -= 1.0f * gt.DeltaTime();
 
 	bool mouseCapture = input.IsCapturingMouse();
-	if (input.GetKeyState('F') == UP) {
+	if (input.GetKeyState('1') == UP) {
 		if (mouseCapture)
 		{
 			input.DisableMouseCapture();
@@ -657,8 +657,8 @@ void Engine::Update(GameTimer gt)
 	// mouse move
 	if (mouseCapture) {
 		POINT p = input.GetMouseMove();
-		if (p.x != 0) mTheta += -p.x * .1f * gt.DeltaTime();
-		if (p.y != 0) mPhi += -p.y * .1f * gt.DeltaTime();
+		if (p.x != 0) mTheta += -p.x * .3f * gt.DeltaTime();
+		if (p.y != 0) mPhi += -p.y * .3f * gt.DeltaTime();
 	}
 
 	float x = mRadius * sinf(mPhi) * cosf(mTheta);
@@ -666,7 +666,7 @@ void Engine::Update(GameTimer gt)
 	float y = mRadius * cosf(mPhi);
 
 	mView = camera.GetViewMatrix(x, y, z);
-	mProj = camera.GetProjectionMatrix(800, 600);
+	mProj = camera.GetProjectionMatrix(mClientWidth, mClientHeight);
 
 	Manager* mgr = Manager::GetInstance();
 

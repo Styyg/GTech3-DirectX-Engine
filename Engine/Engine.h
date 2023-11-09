@@ -148,7 +148,7 @@ private:
 
     Input input;
 
-    int mClientWidth = 800;
-    int mClientHeight = 600;
+    int mClientWidth = 1280;
+    int mClientHeight = 720;
     int mCurrentBackBuffer = 0;
 };
