@@ -665,8 +665,8 @@ void Engine::Update(GameTimer gt)
 	float z = mRadius * sinf(mPhi) * sinf(mTheta);
 	float y = mRadius * cosf(mPhi);
 
-	mCamera.Update();
-
+	mCamera.SetPosition(x, y, z);
+	mCamera.SetLookAt(0, 0, 0);
 	mView = mCamera.GetViewMatrix();
 	mProj = mCamera.GetProjectionMatrix(mClientWidth, mClientHeight);
 

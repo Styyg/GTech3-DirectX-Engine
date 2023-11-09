@@ -146,7 +146,7 @@ private:
 
     float mTheta = 1.5f * DirectX::XM_PI;
     float mPhi = DirectX::XM_PIDIV2;
-    float mRadius = 0.001f;
+    float mRadius = 0.0001f;
 
     Input input;
     Camera mCamera;

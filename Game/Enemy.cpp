@@ -1,9 +1,9 @@
 #include "Enemy.h"
 
-Enemy::Enemy(float birthTime)
+Enemy::Enemy()
 {
     AddCollider();
-    mBirthTime = birthTime;
+    mBirthTime;
 }
 
 Enemy::~Enemy()
@@ -22,4 +22,9 @@ void Enemy::Update(GameTimer mGameTimer)
 
     mTransform.TranslateInWorld(move, move2, 0);
     /*mEnemiesList[i]->mTransform.SetPosition(move, move2, 6);*/
+}
+
+void Enemy::SetBirthTime(float birthTime)
+{
+    mBirthTime = birthTime;
 }

@@ -5,9 +5,10 @@ class Enemy : public GameObject
 {
 //pattern movement
 public:
-	Enemy(float birthTime);
+	Enemy();
 	~Enemy();
 	virtual void Update(GameTimer mGameTimer);
+	void SetBirthTime(float birthTime);
 
 private:
 	float mBirthTime;

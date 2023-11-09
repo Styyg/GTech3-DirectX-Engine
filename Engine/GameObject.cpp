@@ -61,6 +61,11 @@ bool GameObject::HasCollider() {
     }
 }
 
+void GameObject::Kill()
+{
+    mToDestroy = true;
+}
+
 //void GameObject::AddMesh(Mesh mesh)
 //{
 //	mCmps.emplace(Component::MESH, mesh);

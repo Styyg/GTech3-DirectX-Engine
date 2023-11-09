@@ -9,6 +9,7 @@ public:
 	~Missile();
 
 	void Update(GameTimer gt);
+	void SetBirthTime(float birthTime);
 
 	//XMFLOAT3 GetPosition() const;
 	//void SetPosition(const XMFLOAT3& newPos);
@@ -20,6 +21,8 @@ public:
 	//void SetVelocity(float newVelocity);
 
 private:
+	float mBirthTime;
+	float mLifeSpan = 5;
 	XMFLOAT3 position;
 	XMFLOAT3 direction;
 	float velocity;

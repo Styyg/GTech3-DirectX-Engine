@@ -22,10 +22,24 @@ void Manager::ClearGameObjects()
 
 void Manager::Update(GameTimer gt)
 {
-	for (GameObject* obj : gameObjects) 
+    for (auto it = gameObjects.begin(); it != gameObjects.end();)
     {
-		obj->Update(gt);
-	}
+        if ((*it)->IsDead())
+        {
+            delete(*it);
+            it = gameObjects.erase(it);
+        }
+        else
+        {
+            (*it)->Update(gt);
+            ++it;
+        }
+    }
+
+	//for (GameObject* obj : gameObjects) 
+    //{
+	//	obj->Update(gt);
+	//}
 
 	// Collision
     for (size_t i = 0; i < gameObjects.size(); ++i) {
