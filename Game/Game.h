@@ -16,4 +16,7 @@ private:
     float mTimer;
 	void Update();
 	void Draw();
+
+	//float speed;
+	//Camera cam;
 };

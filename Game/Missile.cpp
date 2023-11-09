@@ -1,6 +1,10 @@
 #include "Missile.h"
 
-Missile::Missile(Vector3D pos, Vector3D dir, float speed) : position(pos), direction(dir), velocity(speed) {}
+Missile::Missile() :
+    position(XMFLOAT3(0.0f, 0.0f, 0.0f)),
+    direction(XMFLOAT3(1.0f, 0.0f, 0.0f)),
+    velocity(0.0f)
+{}
 
 Missile::~Missile() {}
 
@@ -11,12 +15,11 @@ void Missile::Update(float deltaTime) {
     position.z += direction.z * velocity * deltaTime;
 }
 
-// Accesseurs et mutateurs pour la position, la direction et la vélocité.
-Vector3D Missile::GetPosition() const { return position; }
-void Missile::SetPosition(const Vector3D& newPos) { position = newPos; }
+XMFLOAT3 Missile::GetPosition() const { return position; }
+void Missile::SetPosition(const XMFLOAT3& newPos) { position = newPos; }
 
-Vector3D Missile::GetDirection() const { return direction; }
-void Missile::SetDirection(const Vector3D& newDir) { direction = newDir; }
+XMFLOAT3 Missile::GetDirection() const { return direction; }
+void Missile::SetDirection(const XMFLOAT3& newDir) { direction = newDir; }
 
 float Missile::GetVelocity() const { return velocity; }
 void Missile::SetVelocity(float newVelocity) { velocity = newVelocity; }
