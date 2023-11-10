@@ -31,7 +31,7 @@ Engine::Engine(HWND hWnd) : mHWnd(hWnd), input(hWnd)
 	// aditionnal free upload buffer
 
 	BuildAllGameObjects(); 
-	
+	input.EnableMouseCapture();
 }
 
 Engine::~Engine()
@@ -643,7 +643,7 @@ void Engine::Update(GameTimer gt)
 	if (input.GetKeyState('D')) mTheta -= 1.0f * gt.DeltaTime();
 
 	bool mouseCapture = input.IsCapturingMouse();
-	if (input.GetKeyState('1') == UP) {
+	if (input.GetKeyState(VK_ESCAPE) == UP) {
 		if (mouseCapture)
 		{
 			input.DisableMouseCapture();
